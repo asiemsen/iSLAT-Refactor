@@ -370,6 +370,97 @@ def Save():
 
     canvas.draw()
 
+# -----------------------------------------------------------------------------
+# NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS
+# -----------------------------------------------------------------------------
+
+
+def fitmulti_onselect():
+    global selectedline, onselect_lines, deblend_filename
+
+    if selectedline == True:  # "selectedline" variable is determined by whether or not an area was selected in the top graph or not
+        print(' ')
+        print('De-blending lines with LMFIT ...')
+        onselect(data_region_x[1], data_region_x[-1])
+        #onselect(xmin, xmax)
+
+        mnwl = np.mean([data_region_x[0], data_region_x[-1]])
+        deblend_filename = os.path.join(linesave_folder, f"{file_name}-deblended_{str(np.round(mnwl, decimals=3))}")
+        #deblend_filename = 'LINESAVES/linedeblend_'+str(np.round(mnwl, decimals=3))+'.csv'
+
+        # using one less pixel on each side here, because of how data_region_x is defined: to include 1 more pixel on each side
+        gauss_fit = fitmulti_line(data_region_x[1], data_region_x[-2], onselect_lines['lam'])
+
+        ln = [f'g{i + 1}' for i in range(len(onselect_lines['lam']))]
+        output_lines = pd.DataFrame(onselect_lines).reset_index(drop=True)
+        lines = np.array(onselect_lines['lam'])
+        for i in range(len(onselect_lines['lam'])):
+            # sigma_freq = ccum / (gauss_fit.params[ln + '_center'].value ** 2) * gauss_fit.params[ln + '_sigma'].value  # sigma from wavelength to frequency
+            # gauss_area = gauss_fit.params[ln + '_height'].value * sigma_freq * np.sqrt (2 * np.pi) * (1.e-23)  # to get line flux in erg/s/cm2
+
+            gauss_fwhm = gauss_fit.params[ln[i] + '_fwhm'].value / gauss_fit.params[
+                ln[i] + '_center'].value * cc  # get FWHM in km/s
+            # these if statements are made to avoid problems when the fit does not converge and stderr are returned as NoneType
+            if gauss_fit.params[ln[i] + '_fwhm'].stderr is not None:
+                gauss_fwhm_err = gauss_fit.params[ln[i] + '_fwhm'].stderr / gauss_fit.params[
+                    ln[i] + '_center'].value * cc  # get FWHM error
+            else:
+                gauss_fwhm_err = float(fwhmtolerance_entry.get())
+
+            sigma_freq = ccum / (gauss_fit.params[ln[i] + '_center'].value ** 2) * gauss_fit.params[ln[i] +
+                                                                                                    '_sigma'].value  # sigma from wavelength to frequency
+            if gauss_fit.params[ln[i] + '_sigma'].stderr is not None:
+                sigma_freq_err = ccum / (gauss_fit.params[ln[i] + '_center'].value ** 2) * gauss_fit.params[ln[i] +
+                                                                                                            '_sigma'].stderr  # error on sigma
+            else:
+                sigma_freq_err = np.nan
+
+            gauss_area = gauss_fit.params[ln[i] + '_height'].value * sigma_freq * np.sqrt(2 * np.pi) * (
+                1.e-23)  # to get line flux in erg/s/cm2
+            if gauss_fit.params[ln[i] + '_height'].stderr is not None:
+                gauss_area_err = np.absolute(gauss_area * np.sqrt(
+                    (gauss_fit.params[ln[i] + '_height'].stderr / gauss_fit.params[ln[i] + '_height'].value) ** 2 +
+                    (sigma_freq_err / sigma_freq) ** 2))  # get area error
+            else:
+                # measure error from data over the +/- 2 sigma range for each line
+                flux_nofit, err_nofit = flux_integral(wave_data, flux_data, err_data,
+                                                      gauss_fit.params[ln[i] + '_center'].value
+                                                      - 2 * gauss_fit.params[ln[i] + '_sigma'].value,
+                                                      gauss_fit.params[ln[i] + '_center'].value
+                                                      + 2 * gauss_fit.params[ln[i] + '_sigma'].value)
+                gauss_area_err = err_nofit
+
+            output_lines.loc[i, "Flux_fit"] = np.float64(f'{gauss_area:.{3}e}')
+            output_lines.loc[i, "Err_fit"] = np.float64(f'{gauss_area_err:.{3}e}')
+            output_lines.loc[i, "FWHM_fit"] = np.round(gauss_fwhm, decimals=1)
+            output_lines.loc[i, "FWHM_err"] = np.round(gauss_fwhm_err, decimals=1)
+            output_lines.loc[i, "Centr_fit"] = np.round(gauss_fit.params[ln[i] + '_center'].value, decimals=5)
+            if gauss_fit.params[ln[i] + '_center'].stderr is not None:
+                output_lines.loc[i, "Centr_err"] = np.round(gauss_fit.params[ln[i] + '_center'].stderr, decimals=5)
+            else:
+                output_lines.loc[i, "Centr_err"] = float(centrtolerance_entry.get())
+            output_lines.loc[i, "Doppler"] = np.round(
+                (gauss_fit.params[ln[i] + '_center'].value - lines[i]) / lines[i] * cc, decimals=1)
+
+        # save output file with measurements as csv file, update to use linesavepath
+        output_lines.to_csv(deblend_filename + '.csv', header=True, index=False)
+
+        fig.canvas.draw_idle()
+
+        data_field.insert(tk.END, ('\n ' + "\nDe-blended line saved in /LINESAVES!"))
+
+    else:
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'No Line Selected!')
+        fig.canvas.draw_idle()
+        return
+    canvas.draw()
+
+
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
+
 
 
 

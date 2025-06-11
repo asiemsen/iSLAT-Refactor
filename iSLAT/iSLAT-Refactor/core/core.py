@@ -5,10 +5,88 @@
 HITRAN_folder = "HITRANdata"
 os.makedirs(HITRAN_folder, exist_ok=True)
 
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+
+selectfileinit()
+print(' ')
+print('Loading molecule files: ...')
+
+molecules_data = read_from_user_csv()
+
+for mol_name, mol_filepath, mol_label in molecules_data:
+    # Import line lists from the ir_model folder
+    mol_data = MolData(mol_name, mol_filepath)
+
+    # Get the initial parameters for the current molecule, use default if not defined
+    params = initial_parameters.get(mol_name, default_initial_params)
+    scale_exponent = params["scale_exponent"]
+    scale_number = params["scale_number"]
+    t_kin = params["t_kin"]
+    radius_init = params["radius_init"]
+
+    # Calculate and set n_mol_init for the current molecule
+    n_mol_init = float(scale_number * (10 ** scale_exponent))
+
+    # Use exec() to create the variables with specific variable names for each molecule
+    exec(f"mol_{mol_name.lower()} = MolData('{mol_name}', '{mol_filepath}')", globals())
+    exec(f"scale_exponent_{mol_name.lower()} = {scale_exponent}", globals())
+    exec(f"scale_number_{mol_name.lower()} = {scale_number}", globals())
+    exec(f"n_mol_{mol_name.lower()}_init = {n_mol_init}", globals())
+    exec(f"t_kin_{mol_name.lower()} = {t_kin}", globals())
+    exec(f"{mol_name.lower()}_radius_init = {radius_init}", globals())
+
+    # Print the results (you can modify this part as needed)
+    print(f"Molecule Initialized: {mol_name}")
+    # print(f"scale_exponent_{mol_name.lower()} = {scale_exponent}")
+    # print(f"scale_number_{mol_name.lower()} = {scale_number}")
+    # print(f"n_mol_{mol_name.lower()}_init = {n_mol_init}")
+    # print(f"t_kin_{mol_name.lower()} = {t_kin}")
+    # print(f"{mol_name.lower()}_radius_init = {radius_init}")
+    # print()  # Empty line for spacing
+
+    # Store the initial values in the dictionary
+    initial_values[mol_name.lower()] = {
+        "scale_exponent": scale_exponent,
+        "scale_number": scale_number,
+        "t_kin": t_kin,
+        "radius_init": radius_init,
+        "n_mol_init": n_mol_init
+    }
+
+# Initialize visibility booleans for each molecule
+molecule_names = [mol_name.lower() for mol_name, _, _ in molecules_data]
+for mol_name in molecule_names:
+    if mol_name == 'h2o':
+        globals()[f"{mol_name}_vis"] = True
+    else:
+        globals()[f"{mol_name}_vis"] = False
+
+for mol_name, mol_filepath, mol_label in molecules_data:
+    molecule_name_lower = mol_name.lower()
+
+    # Column density
+    exec(f"global n_mol_{molecule_name_lower}; n_mol_{molecule_name_lower} = n_mol_{molecule_name_lower}_init")
+
+    # Temperature
+    exec(f"global t_{molecule_name_lower}; t_{molecule_name_lower} = t_kin_{molecule_name_lower}")
+
+    # Radius
+    exec(f"global {molecule_name_lower}_radius; {molecule_name_lower}_radius = {molecule_name_lower}_radius_init")
 
 # -----------------------------------------------------------------------------
 #
 # -----------------------------------------------------------------------------
+
+skip = False
+headers = True
+selectedline = False
+
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
+
 if __name__ == "__main__":
 
     mols = ["H2", "HD", "H2O", "H218O", "CO2", "13CO2", "CO", "13CO", "C18O", "CH4", "HCN", "H13CN", "NH3", "OH",
@@ -458,13 +536,180 @@ def fitmulti_onselect():
 
 
 # -----------------------------------------------------------------------------
-#
+# NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS
 # -----------------------------------------------------------------------------
 
+def fit_saved_lines():
+    try:
+        linelistpath
+    except NameError:
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'Input line list is not defined!')
+    else:
+        try:
+            linesavepath
+        except NameError:
+            data_field.delete('1.0', "end")
+            data_field.insert('1.0', 'Output file is not defined!')
+        else:
+            svd_lns = pd.read_csv(linelistpath, sep=',')
+
+            x_min = np.array(svd_lns['xmin'])
+            x_max = np.array(svd_lns['xmax'])
+            restwl = np.array(svd_lns['lam'])
+
+            for i in range(len(x_min)):
+                ax1.vlines(x_min[i], -2, 10, color='lime', alpha=0.5)
+                ax1.vlines(x_max[i], -2, 10, color='lime', alpha=0.5)
+                gauss_fit, gauss_fwhm, gauss_area, x_fit = fit_line(x_min[i], x_max[i])
+
+                dely = gauss_fit.eval_uncertainty(sigma=3)
+                ax1.fill_between(x_fit, gauss_fit.best_fit - dely, gauss_fit.best_fit + dely, color="#ABABAB",
+                                 label=r'3-$\sigma$ uncertainty band')
+                ax1.plot(x_fit, gauss_fit.best_fit, label='Gauss. fit', color='lime', ls='--')
+                flux_nofit, err_nofit = flux_integral(wave_data, flux_data, err_data, x_min[i], x_max[i])
+
+                sig_det_lim = 2
+                # these reformatting below is for reducing the number of decimals and then get back to a float
+                svd_lns.loc[i, "Flux_data"] = np.float64(f'{flux_nofit:.{3}e}')
+                svd_lns.loc[i, "Err_data"] = np.float64(f'{err_nofit:.{3}e}')
+                svd_lns.loc[i, "Line_SN"] = np.round(flux_nofit / err_nofit, decimals=1)
+                if np.absolute(flux_nofit) > sig_det_lim * err_nofit:  # determine line detection based on data
+                    svd_lns.loc[i, "Line_det"] = np.bool_(True)
+                else:
+                    svd_lns.loc[i, "Line_det"] = np.bool_(False)
+                # store as "islat" values the data values, unless the fit results are detected and replaced below
+                svd_lns.loc[i, "Flux_islat"] = svd_lns.loc[i, "Flux_data"]
+                svd_lns.loc[i, "Err_islat"] = svd_lns.loc[i, "Err_data"]
+
+                # store fit results only if fit is good and line is detected; for now we're using a condition on line detection, as the goodness of fit is not very informative in MIRI spectra, it seems..
+                svd_lns.loc[i, "Fit_SN"] = np.round(gauss_area[0] / gauss_area[1], decimals=1)
+                if np.absolute(gauss_area[0]) > sig_det_lim * gauss_area[1]:
+                    svd_lns.loc[i, "Fit_det"] = np.bool_(True)
+                    svd_lns.loc[i, "Flux_fit"] = np.float64(f'{gauss_area[0]:.{3}e}')
+                    svd_lns.loc[i, "Err_fit"] = np.float64(f'{gauss_area[1]:.{3}e}')
+                    svd_lns.loc[i, "Flux_islat"] = np.float64(f'{gauss_area[0]:.{3}e}')
+                    svd_lns.loc[i, "Err_islat"] = np.float64(f'{gauss_area[1]:.{3}e}')
+                    svd_lns.loc[i, "FWHM_fit"] = np.round(gauss_fwhm[0], decimals=1)
+                    svd_lns.loc[i, "FWHM_err"] = np.round(gauss_fwhm[1], decimals=1)
+                    svd_lns.loc[i, "Centr_fit"] = np.round(gauss_fit.params['center'].value, decimals=5)
+                    svd_lns.loc[i, "Centr_err"] = np.round(gauss_fit.params['center'].stderr, decimals=5)
+                    svd_lns.loc[i, "Doppler"] = np.round(
+                        (gauss_fit.params['center'].value - restwl[i]) / restwl[i] * cc, decimals=1)
+
+                else:
+                    svd_lns.loc[i, "Fit_det"] = np.bool_(False)
+                    svd_lns.loc[i, "Flux_fit"] = np.float64(f'{gauss_area[0]:.{3}e}')
+                    svd_lns.loc[i, "Err_fit"] = np.float64(f'{gauss_area[1]:.{3}e}')
+                    svd_lns.loc[i, "FWHM_fit"] = np.nan
+                    svd_lns.loc[i, "FWHM_err"] = np.nan
+                    svd_lns.loc[i, "Centr_fit"] = np.nan
+                    svd_lns.loc[i, "Centr_err"] = np.nan
+                    svd_lns.loc[i, "Doppler"] = np.nan
+
+                svd_lns.loc[i, "Red-chisq"] = np.round(gauss_fit.redchi, decimals=2)
+
+            # add rotation diagram values
+            freq = ccum / svd_lns['lam']
+            svd_lns['RD_y'] = np.round(
+                np.log(4 * np.pi * svd_lns["Flux_fit"] / (svd_lns['a_stein'] * hh * freq * svd_lns['g_up'])),
+                decimals=3)
+
+            # save output file with measurements as csv file
+            svd_lns.to_csv(linesavepath, header=True, index=False)
+
+            data_field.delete('1.0', "end")
+            data_field.insert('1.0', 'Input lines fitted and saved.')
+            canvas.draw()
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+
+"""
+on_xlims_change() saves the current xp1 and xp2 for use in other functions.
+This Function is necessary to allow the user to use matplotlib's interactive graph scrolling feature without 
+breaking the functionality of other features of this tool (e.g. Next() or Prev())
+"""
 
 
+def on_xlims_change(event_ax):
+    global xp1
+    global xp2
+    xp1, xp2 = event_ax.get_xlim()
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+    
+"""
+flux_integral() calculates the flux of the data line in the selected region of the top graph.
+This function is used in onselect().
+"""
 
 
+def flux_integral(lam, flux, err, lam_min, lam_max):
+    # calculate flux integral
+    integral_range = np.where(np.logical_and(lam > lam_min, lam < lam_max))
+    line_flux_meas = np.trapz(flux[integral_range[::-1]], x=ccum / lam[integral_range[::-1]])
+    line_flux_meas = -line_flux_meas * 1e-23  # to get (erg s-1 cm-2); it's using frequency array, so need the - in front of it
+    line_err_meas = np.trapz(err[integral_range[::-1]], x=ccum / lam[integral_range[::-1]])
+    line_err_meas = -line_err_meas * 1e-23  # to get (erg s-1 cm-2); it's using frequency array, so need the - in front of it
+    return line_flux_meas, line_err_meas
 
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+def update_xp1_rng():
+    global xp1, rng, xp2
+    # Get the values from the Tkinter Entry widgets and convert them to floats
+    min_lamb = float(min_lamb_entry.get())
+    max_lamb = float(max_lamb_entry.get())
+    xp1 = float(xp1_entry.get())
+    rng = float(rng_entry.get())
+    xp2 = xp1 + rng
+    if xp1 < min_lamb or xp1 > max_lamb:
+        if xp1 < min_lamb:
+            min_lamb = xp1
+            min_lamb_entry.delete(0, "end")
+            min_lamb_entry.insert(0, str(min_lamb))
+        if xp1 > max_lamb:
+            max_lamb = xp2
+            max_lamb_entry.delete(0, "end")
+            max_lamb_entry.insert(0, str(max_lamb))
+        update_initvals()
+    ax1.set_xlim(xmin=xp1, xmax=xp2)
+    print("Updated values: xp1 =", xp1, ", rng =", rng)
+    update()
+    canvas.draw()
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+def update_initvals():
+    global min_lamb, max_lamb, dist, fwhm, star_rv, model_line_width, model_pixel_res, intrinsic_line_width, wave_data, pix_per_fwhm
+    # Get the values from the Tkinter Entry widgets and convert them to floats
+    min_lamb = float(min_lamb_entry.get())
+    max_lamb = float(max_lamb_entry.get())
+    dist = float(dist_entry.get())
+    fwhm = float(fwhm_entry.get())
+    if fwhm >= 70:
+        pix_per_fwhm = 10
+    if fwhm < 70:
+        pix_per_fwhm = 20  # increase model pixel sampling in case of higher resolution spectra, usually in the M band
+    intrinsic_line_width = float(intrinsic_line_width_entry.get())
+    model_line_width = cc / fwhm
+    model_pixel_res = (np.mean([min_lamb, max_lamb]) / cc * fwhm) / pix_per_fwhm
+    # this below needs to be updated to act on the wave array in the data
+    wave_data = wave_original - (wave_original / cc * float(star_rv_entry.get()))
+    loadsavedmessage()
+    update()
+    canvas.draw()
 
+    data_field.delete('1.0', "end")
+    data_field.insert('1.0', 'Parameter updated!')
+    # time.sleep(2)
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
 

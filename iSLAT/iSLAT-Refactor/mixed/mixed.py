@@ -1203,3 +1203,820 @@ def selectfileinit():
 # -----------------------------------------------------------------------------
 #
 # -----------------------------------------------------------------------------
+        
+def load_variables_from_file(file_name):
+    # global text_box_data
+    # global text_box
+    global molecules_data, nextrow
+    # Display a confirmation dialog
+    confirmed = tk.messagebox.askquestion("Confirmation",
+                                          "Sure you want to load parameters? Make sure to save any unsaved changes!")
+    if confirmed == "no":  # Check if user clicked "no"
+        return
+    if not os.path.exists(os.path.join(save_folder, f"{file_name}-molsave.csv")):
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'No save for data file found.')
+        return
+
+    data_field.delete('1.0', "end")
+    data_field.insert('1.0', 'Loading saved parameters, this may take a moment...')
+    plt.draw(), canvas.draw()
+    fig.canvas.flush_events()
+
+    # del_molecule_data()
+
+    molecules_data = read_from_csv()
+
+    # Read molecules_list.csv
+    molecules_list = []
+    new_molecules = []
+    missing_molecules = []  # Initialize the missing_molecules array
+    try:
+        with open(os.path.join(save_folder, "molecules_list.csv"), 'r') as list_file:
+            reader = csv.reader(list_file)
+            next(reader)  # Skip header
+            for row in reader:
+                molecules_list.append(tuple(row[:3]))  # Taking the first three columns of each row
+    except Exception as e:
+        print("Error reading molecules_list.csv:", e)
+
+    # Create a set of molecule names from molecules_data
+    molecules_data_names = set(item[0] for item in molecules_data)
+
+    # Create a set of molecule names from molecules_data
+    molecules_list_names = set(item[0] for item in molecules_list)
+
+    # Append missing molecules from molecules_list.csv
+    for mol_name, mol_path, mol_label in molecules_data:
+        if mol_name not in molecules_list_names:
+            new_molecules.append((mol_name, mol_path, mol_label))
+
+    # Append missing molecules from molecules_list.csv
+    for mol_name, mol_path, mol_label in molecules_list:
+        if mol_name not in molecules_data_names:
+            missing_molecules.append((mol_name, mol_path, mol_label))  # Add to missing_molecules
+            molecules_data.append((mol_name, mol_path, mol_label))
+
+    print(f"new molecules:{new_molecules}")
+
+    # Create labels for columns
+    for col, label in enumerate(column_labels):
+        label_widget = tk.Label(molecule_frame, text=label)
+        label_widget.grid(row=0, column=col)
+
+    # Loop to create rows of input fields and buttons for each chemical
+    # nextrow = 1  # Start with row 1
+    for row, (mol_name, mol_filepath, mol_label) in enumerate(new_molecules):
+        # global nextrow
+        y_row = start_y + row_height * (num_rows - row - 1)
+        row = nextrow
+        # Get the initial values for the current chemical from the dictionary
+        params = initial_parameters.get(mol_name, default_initial_params)
+        scale_exponent = params["scale_exponent"]
+        scale_number = params["scale_number"]
+        t_kin = params["t_kin"]
+        radius_init = params["radius_init"]
+
+        # Calculate and set n_mol_init for the current molecule
+        n_mol_init = float(scale_number * (10 ** scale_exponent))
+
+        # Import line lists from the ir_model folder
+        mol_data = MolData(mol_name, mol_filepath)
+
+        # Use exec() to create the variables with specific variable names for each molecule
+        exec(f"mol_{mol_name.lower()} = MolData('{mol_name}', '{mol_filepath}')", globals())
+
+        # Row label
+        exec(f"{mol_name.lower()}_rowl_field = tk.Entry(molecule_frame, width=6)", globals())
+        eval(f"{mol_name.lower()}_rowl_field").grid(row=row, column=0)
+        eval(f"{mol_name.lower()}_rowl_field").insert(0, f"{mol_name}")
+        # molecule_elements[mol_name.lower()] = {'rowl': mol_name.lower() + '_rowl_field'}
+
+        # Temperature input field
+        globals()[f"{mol_name.lower()}_temp_field"] = tk.Entry(molecule_frame, width=4)
+
+        eval(f"{mol_name.lower()}_temp_field").grid(row=row, column=1)
+        eval(f"{mol_name.lower()}_temp_field").insert(0, f"{t_kin}")
+        # globals() [f"{mol_name.lower()}_submit_temp_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), te = globals()[f"{mol_name.lower()}_temp_field"]: submit_temp(te.get(), mn))
+        # eval(f"{mol_name.lower()}_submit_temp_button").grid(row=row + 1, column=2)
+        # molecule_elements[mol_name.lower()] = {'temp': mol_name.lower() + '_temp_field'}
+        eval(f"{mol_name.lower()}_temp_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+            f"{mol_name.lower()}_temp_field"]: submit_temp(ce.get(), mn))
+        exec(f"t_{mol_name.lower()} = {t_kin}", globals())
+
+        # Radius input field
+        globals()[f"{mol_name.lower()}_rad_field"] = tk.Entry(molecule_frame, width=4)
+        eval(f"{mol_name.lower()}_rad_field").grid(row=row, column=2)
+        eval(f"{mol_name.lower()}_rad_field").insert(0, f"{radius_init}")
+        # globals() [f"{mol_name.lower()}_submit_rad_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), re = globals()[f"{mol_name.lower()}_rad_field"]: submit_rad(re.get(), mn))
+        # eval(f"{mol_name.lower()}_submit_rad_button").grid(row=row + 1, column=4)
+        # molecule_elements[mol_name.lower()]['rad'] = mol_name.lower() + '_rad_field'
+        eval(f"{mol_name.lower()}_rad_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+            f"{mol_name.lower()}_rad_field"]: submit_rad(ce.get(), mn))
+        exec(f"{mol_name.lower()}_radius = {radius_init}", globals())
+
+        # Column Density input field
+        globals()[f"{mol_name.lower()}_dens_field"] = tk.Entry(molecule_frame, width=6)
+        eval(f"{mol_name.lower()}_dens_field").grid(row=row, column=3)
+        eval(f"{mol_name.lower()}_dens_field").insert(0, f"{n_mol_init:.{1}e}")
+        # globals() [f"{mol_name.lower()}_submit_col_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), ce = globals()[f"{mol_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
+        # eval(f"{mol_name.lower()}_submit_col_button").grid(row=row + 1, column=6)
+        # molecule_elements[mol_name.lower()]['dens'] = mol_name.lower() + '_dens_field'
+        eval(f"{mol_name.lower()}_dens_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+            f"{mol_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
+        exec(f"n_mol_{mol_name.lower()} = {n_mol_init}", globals())
+
+        # Visibility Checkbutton
+        if mol_name.lower() == 'h2o':
+            exec(f"{mol_name.lower()}_vis_status = tk.BooleanVar()")
+            exec(f"{mol_name.lower()}_vis_status.set(True)")  # Set the initial state
+            exec(
+                f"{mol_name.lower()}_vis_checkbutton = tk.Checkbutton(molecule_frame, text='', variable={mol_name.lower()}_vis_status, onvalue=True, offvalue=False, command=lambda mn=mol_name.lower(): model_visible(mn))")
+            exec(f"{mol_name.lower()}_vis_checkbutton.select()")
+        else:
+            globals()[f"{mol_name.lower()}_vis_status"] = tk.BooleanVar()
+            globals()[f"{mol_name.lower()}_vis_checkbutton"] = tk.Checkbutton(molecule_frame, text='',
+                                                                              variable=eval(
+                                                                                  f"{mol_name.lower()}_vis_status"),
+                                                                              command=lambda
+                                                                                  mn=mol_name.lower(): model_visible(
+                                                                                  mn))
+            globals()[f"{mol_name.lower()}_vis_status"].set(False)  # Set the initial state
+
+        globals()[f"{mol_name}_vis"] = False
+        eval(f"{mol_name.lower()}_vis_checkbutton").grid(row=row, column=4)
+
+        # Delete button
+        del_button = tk.Button(molecule_frame, text="X",
+                               command=lambda widget=eval(f"{mol_name.lower()}_rowl_field"): delete_row(widget))
+        del_button.grid(row=row, column=5)
+
+        color_button = tk.Button(molecule_frame, text=" ",
+                                 command=lambda widget=eval(f"{mol_name.lower()}_rowl_field"): choose_color(widget))
+        color_button.grid(row=row, column=6)
+
+        exec(f"{mol_name.lower()}_line, = ax1.plot([], [], alpha=0.8, linewidth=1)", globals())
+        exec(f"{mol_name.lower()}_line.set_label('{mol_name}')", globals())
+
+        # Intensity calculation
+        exec(f"{mol_name.lower()}_intensity = Intensity(mol_{mol_name.lower()})", globals())
+        exec(
+            f"{mol_name.lower()}_intensity.calc_intensity(t_{mol_name.lower()}, n_mol_{mol_name.lower()}, dv=intrinsic_line_width)",
+            globals())
+        # print(f"{mol_name.lower()}_intensity")
+        # Add the variables to the globals dictionary
+        globals()[f"{mol_name.lower()}_intensity"] = eval(f"{mol_name.lower()}_intensity")
+
+        # Spectrum creation
+        exec(
+            f"{mol_name.lower()}_spectrum = Spectrum(lam_min=min_lamb, lam_max=max_lamb, dlambda=model_pixel_res, R=model_line_width, distance=dist)",
+            globals())
+
+        # Adding intensity to the spectrum
+        exec(
+            f"{mol_name.lower()}_spectrum.add_intensity({mol_name.lower()}_intensity, {mol_name.lower()}_radius ** 2 * np.pi)",
+            globals())
+
+        # Fluxes and lambdas
+        exec(
+            f"fluxes_{mol_name.lower()} = {mol_name.lower()}_spectrum.flux_jy; lambdas_{mol_name.lower()} = {mol_name.lower()}_spectrum.lamgrid",
+            globals())
+
+        # delete_button = tk.Button(molecule_frame, text="Delete", command=lambda r=row, mn=mol_name: delete_row(r, mn))
+        # delete_button.grid(row=row, column=5)
+
+        nextrow = nextrow + 1
+
+    filename = os.path.join(save_folder, f"{file_name}-molsave.csv")
+    if os.path.exists(filename):
+        try:
+            with open(filename, 'r') as csvfile:
+                reader = csv.reader(csvfile)
+                header = next(reader)  # Read the header row
+                rows = list(reader)  # Read all rows into a list
+                for i, row in enumerate(rows):
+                    mol_name, mol_filepath, mol_label, temp, rad, n_mol, color, vis, dist, stellarrv, fwhm, ilw = row
+                    # Update global variables or GUI fields with the loaded values
+                    exec(f"global t_{mol_name.lower()}; t_{mol_name.lower()} = {temp}")
+                    exec(f"global {mol_name.lower()}_radius; {mol_name.lower()}_radius = {rad}")
+                    exec(f"global n_mol_{mol_name.lower()}; n_mol_{mol_name.lower()} = {n_mol}")
+                    exec(f"global {mol_name.lower()}_line_color; {mol_name.lower()}_line_color = '{color}'")
+                    exec(f"global {mol_name.lower()}_color; {mol_name.lower()}_color = '{color}'")
+
+                    exec(f"global {mol_name.lower()}_vis; {mol_name.lower()}_vis = {vis}")
+                    exec(f"global dist; dist = {dist}")
+                    exec(f"global star_rv; star_rv = {stellarrv}")
+                    exec(f"global fwhm; fwhm = {fwhm}")
+                    exec(f"global intrinsic_line_width; intrinsic_line_width = {ilw}")
+
+                    # Update GUI fields
+                    eval(f"{mol_name.lower()}_temp_field").delete(0, "end")
+                    eval(f"{mol_name.lower()}_temp_field").insert(0, temp)
+
+                    eval(f"{mol_name.lower()}_rad_field").delete(0, "end")
+                    eval(f"{mol_name.lower()}_rad_field").insert(0, rad)
+
+                    eval(f"{mol_name.lower()}_dens_field").delete(0, "end")
+                    eval(f"{mol_name.lower()}_dens_field").insert(0, f"{float(n_mol):.{1}e}")
+
+                    dist_entry.delete(0, "end")
+                    dist_entry.insert(0, f"{dist}")
+
+                    star_rv_entry.delete(0, "end")
+                    star_rv_entry.insert(0, f"{star_rv}")
+
+                    fwhm_entry.delete(0, "end")
+                    fwhm_entry.insert(0, f"{fwhm}")
+
+                    intrinsic_line_width_entry.delete(0, "end")
+                    intrinsic_line_width_entry.insert(0, f"{intrinsic_line_width}")
+
+                    # Call update_initvals() only on the last iteration
+                    if i == len(rows) - 1:
+                        update_initvals()
+
+            # update()
+            spanoptionsvar = [m[0] for m in molecules_data]
+            spandropd['values'] = spanoptionsvar
+            if spanoptionsvar:
+                spandropd.set(spanoptionsvar[0])
+
+            print("Variables loaded from CSV file.")
+        except Exception as e:
+            print("Error loading variables from CSV:", e)
+
+    for row, (mol_name, _, _) in enumerate(molecules_data, start=1):
+
+        linecolor = eval(f"{mol_name.lower()}_color")
+        exec(f"{mol_name.lower()}_line.set_color('{linecolor}')", globals())
+        # Get the molecule name in lower case
+        mol_name_lower = mol_name.lower()
+
+        # Get the line object
+        line_var = globals().get(f"{mol_name_lower}_line")
+
+        # Check if the line object exists and has a color attribute
+        if line_var and hasattr(line_var, 'get_color'):
+            # Get the color of the line
+            line_color = line_var.get_color()
+            globals()[f"{mol_name.lower()}_color"] = line_color
+
+            # Get the color button from the grid_slaves list
+            color_button = molecule_frame.grid_slaves(row=row, column=6)[0]
+            # Set the background color of the color button
+            color_button.configure(bg=line_color)
+
+        if eval(f"{mol_name.lower()}_vis"):
+            exec(f"{mol_name.lower()}_vis_checkbutton.select()")
+
+        if not eval(f"{mol_name.lower()}_vis"):
+            exec(f"{mol_name.lower()}_vis_checkbutton.deselect()")
+
+    else:
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'Saved parameters file not found.')
+
+    update()
+    write_user_csv(molecules_data)
+    data_field.delete('1.0', "end")
+    data_field.insert('1.0', 'Saved parameters loaded from file.')
+
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
+    
+def load_defaults_from_file():
+    # global text_box_data
+    # global text_box
+    global molecules_data, nextrow
+
+    confirmed = tk.messagebox.askquestion("Confirmation",
+                                          "Sure you want to load the default molecules? This will erase all current parameters (save first if you wish to).")
+    if confirmed == "no":  # Check if user clicked "no"
+        return
+
+    data_field.delete('1.0', "end")
+    data_field.insert('1.0', 'Loading default molecules, this may take a moment...')
+    plt.draw(), canvas.draw()
+    fig.canvas.flush_events()
+
+    del_molecule_data()
+
+    molecules_data = read_default_csv()
+    # print(molecules_data)
+    # Create labels for columns
+    for col, label in enumerate(column_labels):
+        label_widget = tk.Label(molecule_frame, text=label)
+        label_widget.grid(row=0, column=col)
+
+    # Loop to create rows of input fields and buttons for each chemical
+    nextrow = 1  # Start with row 1
+    for row, (mol_name, mol_filepath, mol_label) in enumerate(molecules_data):
+        # global nextrow
+        y_row = start_y + row_height * (num_rows - row - 1)
+        row = row + 1
+        # Get the initial values for the current chemical from the dictionary
+        params = initial_parameters.get(mol_name, default_initial_params)
+        scale_exponent = params["scale_exponent"]
+        scale_number = params["scale_number"]
+        t_kin = params["t_kin"]
+        radius_init = params["radius_init"]
+
+        # Calculate and set n_mol_init for the current molecule
+        n_mol_init = float(scale_number * (10 ** scale_exponent))
+
+        # Import line lists from the ir_model folder
+        mol_data = MolData(mol_name, mol_filepath)
+
+        # Use exec() to create the variables with specific variable names for each molecule
+        exec(f"mol_{mol_name.lower()} = MolData('{mol_name}', '{mol_filepath}')", globals())
+
+        # Row label
+        exec(f"{mol_name.lower()}_rowl_field = tk.Entry(molecule_frame, width=6)", globals())
+        eval(f"{mol_name.lower()}_rowl_field").grid(row=row, column=0)
+        eval(f"{mol_name.lower()}_rowl_field").insert(0, f"{mol_name}")
+        # molecule_elements[mol_name.lower()] = {'rowl': mol_name.lower() + '_rowl_field'}
+
+        # Temperature input field
+        globals()[f"{mol_name.lower()}_temp_field"] = tk.Entry(molecule_frame, width=4)
+
+        eval(f"{mol_name.lower()}_temp_field").grid(row=row, column=1)
+        eval(f"{mol_name.lower()}_temp_field").insert(0, f"{t_kin}")
+        # globals() [f"{mol_name.lower()}_submit_temp_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), te = globals()[f"{mol_name.lower()}_temp_field"]: submit_temp(te.get(), mn))
+        # eval(f"{mol_name.lower()}_submit_temp_button").grid(row=row + 1, column=2)
+        # molecule_elements[mol_name.lower()] = {'temp': mol_name.lower() + '_temp_field'}
+        eval(f"{mol_name.lower()}_temp_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+            f"{mol_name.lower()}_temp_field"]: submit_temp(ce.get(), mn))
+        exec(f"t_{mol_name.lower()} = {t_kin}", globals())
+
+        # Radius input field
+        globals()[f"{mol_name.lower()}_rad_field"] = tk.Entry(molecule_frame, width=4)
+        eval(f"{mol_name.lower()}_rad_field").grid(row=row, column=2)
+        eval(f"{mol_name.lower()}_rad_field").insert(0, f"{radius_init}")
+        # globals() [f"{mol_name.lower()}_submit_rad_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), re = globals()[f"{mol_name.lower()}_rad_field"]: submit_rad(re.get(), mn))
+        # eval(f"{mol_name.lower()}_submit_rad_button").grid(row=row + 1, column=4)
+        # molecule_elements[mol_name.lower()]['rad'] = mol_name.lower() + '_rad_field'
+        eval(f"{mol_name.lower()}_rad_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+            f"{mol_name.lower()}_rad_field"]: submit_rad(ce.get(), mn))
+        exec(f"{mol_name.lower()}_radius = {radius_init}", globals())
+
+        # Column Density input field
+        globals()[f"{mol_name.lower()}_dens_field"] = tk.Entry(molecule_frame, width=6)
+        eval(f"{mol_name.lower()}_dens_field").grid(row=row, column=3)
+        eval(f"{mol_name.lower()}_dens_field").insert(0, f"{n_mol_init:.{1}e}")
+        # globals() [f"{mol_name.lower()}_submit_col_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), ce = globals()[f"{mol_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
+        # eval(f"{mol_name.lower()}_submit_col_button").grid(row=row + 1, column=6)
+        # molecule_elements[mol_name.lower()]['dens'] = mol_name.lower() + '_dens_field'
+        eval(f"{mol_name.lower()}_dens_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+            f"{mol_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
+        exec(f"n_mol_{mol_name.lower()} = {n_mol_init}", globals())
+
+        # Visibility Checkbutton
+        if mol_name.lower() == 'h2o':
+            exec(f"{mol_name.lower()}_vis_status = tk.BooleanVar()")
+            exec(f"{mol_name.lower()}_vis_status.set(True)")  # Set the initial state
+            exec(
+                f"{mol_name.lower()}_vis_checkbutton = tk.Checkbutton(molecule_frame, text='', variable={mol_name.lower()}_vis_status, onvalue=True, offvalue=False, command=lambda mn=mol_name.lower(): model_visible(mn))")
+            exec(f"{mol_name.lower()}_vis_checkbutton.select()")
+        else:
+            globals()[f"{mol_name.lower()}_vis_status"] = tk.BooleanVar()
+            globals()[f"{mol_name.lower()}_vis_checkbutton"] = tk.Checkbutton(molecule_frame, text='',
+                                                                              variable=eval(
+                                                                                  f"{mol_name.lower()}_vis_status"),
+                                                                              command=lambda
+                                                                                  mn=mol_name.lower(): model_visible(
+                                                                                  mn))
+            globals()[f"{mol_name.lower()}_vis_status"].set(False)  # Set the initial state
+
+        globals()[f"{mol_name}_vis"] = False
+        eval(f"{mol_name.lower()}_vis_checkbutton").grid(row=row, column=4)
+
+        # Delete button
+        del_button = tk.Button(molecule_frame, text="X",
+                               command=lambda widget=eval(f"{mol_name.lower()}_rowl_field"): delete_row(widget))
+        del_button.grid(row=row, column=5)
+
+        color_button = tk.Button(molecule_frame, text=" ",
+                                 command=lambda widget=eval(f"{mol_name.lower()}_rowl_field"): choose_color(widget))
+        color_button.grid(row=row, column=6)
+
+        exec(f"{mol_name.lower()}_line, = ax1.plot([], [], alpha=0.8, linewidth=1)", globals())
+        exec(f"{mol_name.lower()}_line.set_label('{mol_name}')", globals())
+
+        # Intensity calculation
+        exec(f"{mol_name.lower()}_intensity = Intensity(mol_{mol_name.lower()})", globals())
+        exec(
+            f"{mol_name.lower()}_intensity.calc_intensity(t_{mol_name.lower()}, n_mol_{mol_name.lower()}, dv=intrinsic_line_width)",
+            globals())
+        # print(f"{mol_name.lower()}_intensity")
+        # Add the variables to the globals dictionary
+        globals()[f"{mol_name.lower()}_intensity"] = eval(f"{mol_name.lower()}_intensity")
+
+        # Spectrum creation
+        exec(
+            f"{mol_name.lower()}_spectrum = Spectrum(lam_min=min_lamb, lam_max=max_lamb, dlambda=model_pixel_res, R=model_line_width, distance=dist)",
+            globals())
+
+        # Adding intensity to the spectrum
+        exec(
+            f"{mol_name.lower()}_spectrum.add_intensity({mol_name.lower()}_intensity, {mol_name.lower()}_radius ** 2 * np.pi)",
+            globals())
+
+        # Fluxes and lambdas
+        exec(
+            f"fluxes_{mol_name.lower()} = {mol_name.lower()}_spectrum.flux_jy; lambdas_{mol_name.lower()} = {mol_name.lower()}_spectrum.lamgrid",
+            globals())
+
+        # delete_button = tk.Button(molecule_frame, text="Delete", command=lambda r=row, mn=mol_name: delete_row(r, mn))
+        # delete_button.grid(row=row, column=5)
+
+        nextrow = row + 1
+
+    write_user_csv(molecules_data)
+    spanoptionsvar = [m[0] for m in molecules_data]
+    spandropd['values'] = spanoptionsvar
+    if spanoptionsvar:
+        spandropd.set(spanoptionsvar[0])
+
+    filename = os.path.join(save_folder, f"default.csv")
+    if os.path.exists(filename):
+        try:
+            with open(filename, 'r') as csvfile:
+                reader = csv.reader(csvfile)
+                header = next(reader)  # Read the header row
+                for row in reader:
+                    mol_name, mol_filepath, mol_label, temp, rad, n_mol, vis = row
+                    # Update global variables or GUI fields with the loaded values
+                    exec(f"global t_{mol_name.lower()}; t_{mol_name.lower()} = {temp}")
+                    exec(f"global {mol_name.lower()}_radius; {mol_name.lower()}_radius = {rad}")
+                    exec(f"global n_mol_{mol_name.lower()}; n_mol_{mol_name.lower()} = {n_mol}")
+                    exec(f"global {mol_name.lower()}_vis; {mol_name.lower()}_vis = {vis}")
+
+                    # Update GUI fields
+                    eval(f"{mol_name.lower()}_temp_field").delete(0, "end")
+                    eval(f"{mol_name.lower()}_temp_field").insert(0, temp)
+
+                    eval(f"{mol_name.lower()}_rad_field").delete(0, "end")
+                    eval(f"{mol_name.lower()}_rad_field").insert(0, rad)
+
+                    eval(f"{mol_name.lower()}_dens_field").delete(0, "end")
+                    eval(f"{mol_name.lower()}_dens_field").insert(0, f"{float(n_mol):.{1}e}")
+
+                    update_initvals()
+
+            # update()
+            data_field.delete('1.0', "end")
+            data_field.insert('1.0', 'Defaults loaded!')
+        except Exception as e:
+            print("Error loading defaults:", e)
+
+    for row, (mol_name, _, _) in enumerate(molecules_data, start=1):
+
+        # Get the molecule name in lower case
+        mol_name_lower = mol_name.lower()
+
+        # Get the line object
+        line_var = globals().get(f"{mol_name_lower}_line")
+
+        # Check if the line object exists and has a color attribute
+        if line_var and hasattr(line_var, 'get_color'):
+            # Get the color of the line
+            line_color = line_var.get_color()
+            globals()[f"{mol_name.lower()}_color"] = line_color
+
+            # Get the color button from the grid_slaves list
+            color_button = molecule_frame.grid_slaves(row=row, column=6)[0]
+
+            # Set the background color of the color button
+            color_button.configure(bg=line_color)
+
+        if eval(f"{mol_name.lower()}_vis"):
+            exec(f"{mol_name.lower()}_vis_checkbutton.select()")
+    
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
+            
+def add_molecule_data():
+    global mol_file_path
+    global mol_file_name
+    global wave_data
+    global flux_data
+    global filename_box_data
+    global nextrow
+    global vis_button
+    global vis_status
+    # global text_box
+    # global text_box_data
+    global text_boxes
+    global molecule_elements
+    global deleted_molecules
+    global molecules_data
+    global files_frame
+    global spanoptionsvar
+    global spandropd
+
+    molecule_elements = {}
+
+    # Define the filetypes to accept, in this case, only .par files
+    molfiletypes = [('PAR Files', '*.par')]
+    hitran_directory = os.path.abspath("../HITRANdata")
+
+    # Ask the user to select a data file
+    inmolfiles = filedialog.askopenfilename(multiple=True, title='Choose HITRAN Molecule Data File',
+                                            filetypes=molfiletypes, initialdir=hitran_directory)
+
+    if inmolfiles:
+        for mol_file_path in inmolfiles:
+            # Process each selected file
+            mol_file_name = os.path.basename(file_path)
+
+            # Ask the user to enter the molecule name
+            molecule_name = simpledialog.askstring("Assign label",
+                                                   "Enter a label for this model (LaTeX and case sensitive):",
+                                                   parent=window)
+            molecule_label = molecule_name
+
+            # remove unaccepted characters
+            # molecule_name = molecule_name.replace("-","_")
+            molecule_name = molecule_name.translate({ord(i): None for i in '_$^{}'})
+            molecule_name = molecule_name.translate({ord(i): "_" for i in ' -'})
+
+            # Check if the molecule_name starts with a number
+            if molecule_name[0].isdigit():
+                # Add a "m_" to the beginning of the molecule name because python cannot take strings starting with a number
+                molecule_name = 'm_' + molecule_name
+
+            molecule_name = molecule_name.upper()
+
+            if molecule_name:
+
+                data_field.delete('1.0', "end")
+                data_field.insert('1.0', 'Importing Molecule...')
+                plt.draw(), canvas.draw()
+                fig.canvas.flush_events()
+
+                # Specify the common directory to start the relative path from
+                common_directory = "HITRANdata"
+
+                script_directory = os.path.dirname(
+                    os.path.realpath(sys.argv[0] if hasattr(sys, 'frozen') else sys.executable))
+
+                # Add the molecule name and file path to the molecules_data list
+                relative_path = os.path.relpath(mol_file_path, start=script_directory)
+                if common_directory in relative_path:
+                    relative_path = os.path.join(common_directory,
+                                                 relative_path.split(common_directory, 1)[1].lstrip(
+                                                     os.path.sep)).replace('\\', '/')
+                molecules_data.append((molecule_name, relative_path, molecule_label))
+
+                # make sure molecule is no longer in deleted array
+                if molecule_name.lower() in deleted_molecules:
+                    deleted_molecules.remove(molecule_name.lower())
+
+                # Import line lists from the ir_model folder
+                mol_data = MolData(mol_name, mol_filepath)
+
+                # Get the initial parameters for the current molecule, use default if not defined
+                params = initial_parameters.get(mol_name, default_initial_params)
+                scale_exponent = params["scale_exponent"]
+                scale_number = params["scale_number"]
+                t_kin = params["t_kin"]
+                radius_init = params["radius_init"]
+
+                # Calculate and set n_mol_init for the current molecule
+                n_mol_init = float(scale_number * (10 ** scale_exponent))
+
+                # Use exec() to create the variables with specific variable names for each molecule
+                exec(f"mol_{molecule_name.lower()} = MolData('{molecule_name}', '{mol_file_path}')", globals())
+                exec(f"scale_exponent_{molecule_name.lower()} = {scale_exponent}", globals())
+                exec(f"scale_number_{molecule_name.lower()} = {scale_number}", globals())
+                exec(f"n_mol_{molecule_name.lower()}_init = {n_mol_init}", globals())
+                exec(f"t_kin_{molecule_name.lower()} = {t_kin}", globals())
+                exec(f"{molecule_name.lower()}_radius_init = {radius_init}", globals())
+
+                # Print the results (you can modify this part as needed)
+                print(f"Molecule Added: {molecule_name}")
+                # print(f"scale_exponent_{molecule_name.lower()} = {scale_exponent}")
+                # print(f"scale_number_{molecule_name.lower()} = {scale_number}")
+                # print(f"n_mol_{molecule_name.lower()}_init = {n_mol_init}")
+                # print(f"t_kin_{molecule_name.lower()} = {t_kin}")
+                # print(f"{molecule_name.lower()}_radius_init = {radius_init}")
+                print()  # Empty line for spacing
+
+                # Store the initial values in the dictionary
+                initial_values[molecule_name.lower()] = {
+                    "scale_exponent": scale_exponent,
+                    "scale_number": scale_number,
+                    "t_kin": t_kin,
+                    "radius_init": radius_init,
+                    "n_mol_init": n_mol_init
+                }
+
+                # Create a new row of text boxes for the current molecule
+                row = nextrow
+                y_row = start_y + row_height * (num_rows - row - 1)
+
+                # Row label
+                exec(f"{molecule_name.lower()}_rowl_field = tk.Entry(molecule_frame, width=6)", globals())
+                eval(f"{molecule_name.lower()}_rowl_field").grid(row=row, column=0)
+                eval(f"{molecule_name.lower()}_rowl_field").insert(0, f"{molecule_name}")
+                molecule_elements[molecule_name.lower()] = {'rowl': molecule_name.lower() + '_rowl_field'}
+
+                # Temperature input field
+                globals()[f"{molecule_name.lower()}_temp_field"] = tk.Entry(molecule_frame, width=4)
+
+                eval(f"{molecule_name.lower()}_temp_field").grid(row=row, column=1)
+                eval(f"{molecule_name.lower()}_temp_field").insert(0, f"{t_kin}")
+                # globals() [f"{molecule_name.lower()}_submit_temp_button"] = tk.Button(window, text="Submit", command=lambda mn=molecule_name.lower(), te = globals()[f"{molecule_name.lower()}_temp_field"]: submit_temp(te.get(), mn))
+                # eval(f"{molecule_name.lower()}_submit_temp_button").grid(row=row + 1, column=2)
+                molecule_elements[molecule_name.lower()] = {'temp': molecule_name.lower() + '_temp_field'}
+                eval(f"{molecule_name.lower()}_temp_field").bind("<Return>", lambda event, mn=molecule_name.lower(),
+                                                                                    ce=globals()[
+                                                                                        f"{molecule_name.lower()}_temp_field"]: submit_temp(
+                    ce.get(), mn))
+
+                # Radius input field
+                globals()[f"{molecule_name.lower()}_rad_field"] = tk.Entry(molecule_frame, width=4)
+                eval(f"{molecule_name.lower()}_rad_field").grid(row=row, column=2)
+                eval(f"{molecule_name.lower()}_rad_field").insert(0, f"{radius_init}")
+                # globals() [f"{molecule_name.lower()}_submit_rad_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), re = globals()[f"{molecule_name.lower()}_rad_field"]: submit_rad(re.get(), mn))
+                # eval(f"{molecule_name.lower()}_submit_rad_button").grid(row=row + 1, column=4)
+                molecule_elements[molecule_name.lower()]['rad'] = molecule_name.lower() + '_rad_field'
+                eval(f"{molecule_name.lower()}_rad_field").bind("<Return>", lambda event, mn=molecule_name.lower(),
+                                                                                   ce=globals()[
+                                                                                       f"{molecule_name.lower()}_rad_field"]: submit_rad(
+                    ce.get(), mn))
+
+                # Column Density input field
+                globals()[f"{molecule_name.lower()}_dens_field"] = tk.Entry(molecule_frame, width=6)
+                eval(f"{molecule_name.lower()}_dens_field").grid(row=row, column=3)
+                eval(f"{molecule_name.lower()}_dens_field").insert(0, f"{n_mol_init:.{1}e}")
+                # globals() [f"{molecule_name.lower()}_submit_col_button"] = tk.Button(window, text="Submit", command=lambda mn=mol_name.lower(), ce = globals()[f"{molecule_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
+                # eval(f"{molecule_name.lower()}_submit_col_button").grid(row=row + 1, column=6)
+                molecule_elements[molecule_name.lower()]['dens'] = molecule_name.lower() + '_dens_field'
+                eval(f"{molecule_name.lower()}_dens_field").bind("<Return>", lambda event, mn=molecule_name.lower(),
+                                                                                    ce=globals()[
+                                                                                        f"{molecule_name.lower()}_dens_field"]: submit_col(
+                    ce.get(), mn))
+
+                # Visibility Button
+                globals()[f"{molecule_name.lower()}_vis_status"] = tk.BooleanVar()
+                globals()[f"{molecule_name.lower()}_vis_checkbutton"] = tk.Checkbutton(molecule_frame, text='',
+                                                                                       variable=eval(
+                                                                                           f"{molecule_name.lower()}_vis_status"),
+                                                                                       command=lambda
+                                                                                           mn=molecule_name.lower(): model_visible(
+                                                                                           mn))
+                globals()[f"{molecule_name.lower()}_vis_status"].set(False)  # Set the initial state
+                eval(f"{molecule_name.lower()}_vis_checkbutton").grid(row=row, column=4)
+                globals()[f"{molecule_name.lower()}_vis"] = False
+                # Add the variable to the globals dictionary
+                # Add the text boxes to the molecule_text_boxes dictionary
+                # molecule_text_boxes[molecule_name.lower()] = text_boxes
+
+                # print(f"{mol_name.lower()}_rowl_field")
+
+                del_button = tk.Button(molecule_frame, text="X", command=lambda
+                    widget=eval(f"{molecule_name.lower()}_rowl_field"): delete_row(widget))
+                del_button.grid(row=row, column=5)
+
+                color_button = tk.Button(molecule_frame, text=" ", command=lambda
+                    widget=eval(f"{molecule_name.lower()}_rowl_field"): choose_color(widget))
+                color_button.grid(row=row, column=6)
+
+                # Increment nextrow
+                nextrow += 1
+
+                exec(f"{molecule_name.lower()}_line, = ax1.plot([], [], alpha=0.8, linewidth=1)", globals())
+                exec(f"{molecule_name.lower()}_line.set_label('{molecule_label}')", globals())
+
+                line_var = globals().get(f"{molecule_name.lower()}_line")
+                linecolor = line_var.get_color()
+                # Get the color button from the grid_slaves list
+                colorbutton = molecule_frame.grid_slaves(row=row, column=6)[0]
+
+                # Set the background color of the color button
+                colorbutton.configure(bg=linecolor)
+
+                # Column density
+                exec(
+                    f"global n_mol_{molecule_name.lower()}; n_mol_{molecule_name.lower()} = n_mol_{molecule_name.lower()}_init")
+
+                # Temperature
+                exec(f"global t_{molecule_name.lower()}; t_{molecule_name.lower()} = t_kin_{molecule_name.lower()}")
+
+                # Radius
+                exec(
+                    f"global {molecule_name.lower()}_radius; {molecule_name.lower()}_radius = {molecule_name.lower()}_radius_init")
+
+                # Intensity calculation
+                exec(f"{molecule_name.lower()}_intensity = Intensity(mol_{molecule_name.lower()})", globals())
+                exec(
+                    f"{molecule_name.lower()}_intensity.calc_intensity(t_{molecule_name.lower()}, n_mol_{molecule_name.lower()}, dv=intrinsic_line_width)",
+                    globals())
+                # print(f"{molecule_name.lower()}_intensity")
+                # Add the variables to the globals dictionary
+                globals()[f"{molecule_name.lower()}_intensity"] = eval(f"{molecule_name.lower()}_intensity")
+
+                # Spectrum creation
+                exec(
+                    f"{molecule_name.lower()}_spectrum = Spectrum(lam_min=min_lamb, lam_max=max_lamb, dlambda=model_pixel_res, R=model_line_width, distance=dist)",
+                    globals())
+
+                # Adding intensity to the spectrum
+                exec(
+                    f"{molecule_name.lower()}_spectrum.add_intensity({molecule_name.lower()}_intensity, {molecule_name.lower()}_radius ** 2 * np.pi)",
+                    globals())
+
+                # Fluxes and lambdas
+                exec(
+                    f"fluxes_{molecule_name.lower()} = {molecule_name.lower()}_spectrum.flux_jy; lambdas_{molecule_name.lower()} = {molecule_name.lower()}_spectrum.lamgrid",
+                    globals())
+
+                # Dynamically set the data for each molecule's line using exec and globals()
+                # exec(f"{molecule_name.lower()}_line.set_data(lambdas_{molecule_name.lower()}, fluxes_{molecule_name.lower()})", globals())
+
+                # Save the molecules_data to the CSV file
+                write_user_csv(molecules_data)
+
+                update()
+
+                # Clearing the text feed box.
+                data_field.delete('1.0', "end")
+                data_field.insert('1.0', 'Molecule Imported')
+                canvas.draw(), plt.draw()
+                # fig.canvas.flush_events()
+
+                # plt.pause(2)
+                # Sleep for 3 seconds
+                # time.sleep(3)
+                canvas.draw()
+
+                # Clearing the text feed box.
+                data_field.delete('1.0', "end")
+
+                canvas.draw()
+
+                spanoptionsvar = [m[0] for m in molecules_data]
+                spandropd['values'] = spanoptionsvar
+                if spanoptionsvar:
+                    spandropd.set(spanoptionsvar[0])
+
+
+            else:
+                print("Molecule label not provided.")
+    else:
+        print("No files selected.")
+
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
+            
+def del_molecule_data():
+    global molecules_data, nextrow
+
+    default_list = []
+    try:
+        with open(os.path.join(save_folder, "default.csv"), 'r') as list_file:
+            reader = csv.reader(list_file)
+            next(reader)  # Skip header
+            for row in reader:
+                default_list.append(tuple(row[:3]))  # Taking the first three columns of each row
+    except Exception as e:
+        print("Error reading molecules_list.csv:", e)
+
+    # Create a set of molecule names from molecules_data
+    default_data_names = set(item[0] for item in default_data)
+    indexsub = 0
+    for row, (mol_name, _, _) in enumerate(molecules_data, start=1):
+        if mol_name not in default_data_names:
+            adjrow = row - indexsub
+            # Destroy all widgets in the row
+            for w in molecule_frame.grid_slaves(row=adjrow):
+                w.destroy()
+
+            exec(f"{mol_name.lower()}_line.remove()", globals())
+
+            # Remove the molecule from molecules_data
+            molecules_data = [molecule for molecule in molecules_data if molecule[0].lower() != mol_name]
+
+            # Move all rows below this row up by one
+            for r in range(adjrow + 1, nextrow):
+                for col in range(7):  # Adjust the range if you have more columns
+                    widget_list = molecule_frame.grid_slaves(row=r, column=col)
+                    for widget in widget_list:
+                        widget.grid(row=r - 1, column=col)
+
+            indexsub += 1
+
+    write_user_csv(molecules_data)
+    nextrow = 7
+    update()
+
+    data_field.delete('1.0', "end")
+    data_field.insert('1.0', f'{mol_name.upper()} deleted!')
+
+
+
+

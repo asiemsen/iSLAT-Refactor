@@ -5,6 +5,9 @@
 HITRAN_folder = "HITRANdata"
 os.makedirs(HITRAN_folder, exist_ok=True)
 
+variable_names = ['t_h2o', 'h2o_radius', 'n_mol_h2o', 't_oh', 'oh_radius', 'n_mol_oh', 't_hcn', 'hcn_radius',
+                  'n_mol_hcn', 't_c2h2', 'c2h2_radius', 'n_mol_c2h2']
+
 # -----------------------------------------------------------------------------
 # 
 # -----------------------------------------------------------------------------
@@ -169,6 +172,43 @@ os.makedirs(linesave_folder, exist_ok=True)
 #
 # -----------------------------------------------------------------------------
 
+for mol_name, mol_filepath, mol_label in molecules_data:
+    molecule_name_lower = mol_name.lower()
+
+    # Intensity calculation
+    exec(f"{molecule_name_lower}_intensity = Intensity(mol_{molecule_name_lower})")
+    exec(
+        f"{molecule_name_lower}_intensity.calc_intensity(t_kin_{molecule_name_lower}, n_mol_{molecule_name_lower}, dv=intrinsic_line_width)")
+
+    # Spectrum creation
+    exec(
+        f"{molecule_name_lower}_spectrum = Spectrum(lam_min=min_lamb, lam_max=max_lamb, dlambda=model_pixel_res, R=model_line_width, distance=dist)")
+
+    # Adding intensity to the spectrum
+    exec(
+        f"{molecule_name_lower}_spectrum.add_intensity({molecule_name_lower}_intensity, {molecule_name_lower}_radius ** 2 * np.pi)")
+
+    # Fluxes and lambdas
+    exec(
+        f"fluxes_{molecule_name_lower} = {molecule_name_lower}_spectrum.flux_jy; lambdas_{molecule_name_lower} = {molecule_name_lower}_spectrum.lamgrid")
+
+
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
+# Setting up the line identifier tool
+int_pars = h2o_intensity.get_table
+int_pars.index = range(len(int_pars.index))
+
+write_default_csv(default_data)
+
+csv_perm_path = os.path.join(save_folder, f"{file_name}-molsave.csv")
+set_file_permissions(csv_perm_path, 0o666)  # Here, 0o666 sets read and write permissions for all users.
+
+
+# -----------------------------------------------------------------------------
+#
+# -----------------------------------------------------------------------------
 # read more molecules if saved by the user in a previous iSLAT session
 def read_from_csv():
     global file_name
@@ -712,4 +752,479 @@ def update_initvals():
 # -----------------------------------------------------------------------------
 # 
 # -----------------------------------------------------------------------------
+
+def update_csv():
+    filename = os.path.join(save_folder, f"{file_name}-molsave.csv")
+    csv_file = filename
+    try:
+        # Read existing data from CSV
+        with open(csv_file, 'r', newline='') as file:
+            reader = csv.reader(file)
+            rows = list(reader)
+
+        # Identify the row to delete
+        for i, row in enumerate(rows):
+            if row[0].lower() == mol_name:
+                del rows[i]
+                break
+
+        # Write updated data back to CSV
+        with open(csv_file, 'w', newline='') as file:
+            writer = csv.writer(file)
+            writer.writerows(rows)
+
+        print(f"{csv_file} updated.")
+    except Exception as e:
+        print(f"Error updating {csv_file}: {e}")
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+
+def saveparams_button_clicked():
+    write_to_csv(molecules_data, True)
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+
+def write_default_csv(data):
+    csv_filename = os.path.join(save_folder, f"default.csv")
+
+    try:
+        with open(csv_filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            header = ['Molecule Name', 'File Path', 'Molecule Label', 'Temp', 'Rad', 'N_Mol', 'Vis']
+            writer.writerow(header)
+
+            for mol_name, mol_filepath, mol_label in data:
+                row = [mol_name, mol_filepath, mol_label]
+                # Append the variables for the current molecule to the row
+                row.append(globals().get(f"t_{mol_name.lower()}", ''))
+                row.append(globals().get(f"{mol_name.lower()}_radius", ''))
+                row.append(globals().get(f"n_mol_{mol_name.lower()}", ''))
+                row.append(globals().get(f"{mol_name.lower()}_vis", ''))
+                writer.writerow(row)
+    except Exception as e:
+        print("Error:", e)
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+        
+# Function to open spectrum data file from the GUI using Open File for "Spectrum data file"
+def selectfile():
+    global file_path
+    global file_name
+    global wave_data, flux_data, err_data, wave_original
+    global input_spectrum_data
+    global filename_box_data
+    global xp1, rng, xp2, xp1_entry, rng_entry
+
+    filetypes = [('CSV Files', '*.csv')]
+    spectra_directory = os.path.abspath("../EXAMPLE-data")
+    infiles = filedialog.askopenfilename(multiple=True, title='Choose Spectrum Data File', filetypes=filetypes,
+                                         initialdir=spectra_directory)
+
+    if infiles:
+        for file_path in infiles:
+            # Process each selected file
+            print("Selected file:", file_path)
+            file_name = os.path.basename(file_path)
+
+            file_name_label.config(text=str(file_name))
+            # filename_box_data.set_val(file_name)
+            # Add your code to process each file
+            # THIS IS THE OLD FILE SYSTEM (THIS WILL BE USED UNTIL THE NEW FILE SYSTEM IS DEVELOPED) USE THIS!!!!!
+            input_spectrum_data = pd.read_csv(filepath_or_buffer=(file_path), sep=',')
+            wave_data = np.array(input_spectrum_data['wave'])
+            wave_original = np.array(input_spectrum_data['wave'])
+            flux_data = np.array(input_spectrum_data['flux'])
+            if 'err' in input_spectrum_data:
+                err_data = np.array(input_spectrum_data['err'])
+            else:
+                err_data = np.full_like(flux_data, np.nanmedian(flux_data) / 100)  # assumed, if not present
+
+            # Set new values of xp1 and rng only if the new spectrum is in a different wave range
+            fig_max_limit = np.nanmax(wave_data)
+            fig_min_limit = np.nanmin(wave_data)
+            xp1_current = float(xp1_entry.get())
+            if xp1_current > fig_max_limit or xp1_current < fig_min_limit:
+                xp1 = fig_min_limit + (fig_max_limit - fig_min_limit) / 2
+                rng = (fig_max_limit - fig_min_limit) / 10
+                xp2 = xp1 + rng
+                xp1_entry.delete(0, "end")
+                xp1_entry.insert(0, np.around(xp1, decimals=2))
+                rng_entry.delete(0, "end")
+                rng_entry.insert(0, np.around(rng, decimals=2))
+
+            # now = dt.now()
+            # dateandtime = now.strftime("%d-%m-%Y-%H-%M-%S")
+            # print(dateandtime)
+            # svd_line_file = f'savedlines-{dateandtime}.csv'
+
+            update()
+
+            data_field.delete('1.0', "end")
+            data_field.insert('1.0', 'New spectrum loaded!')
+    else:
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'No file selected.')
+
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+        
+def selectlinefile():
+    global linelistfile
+    global linelistpath
+
+    # Create the folder if it doesn't exist
+    linelist_folder = "LINELISTS"
+
+    # Set the initial directory to the created folder
+    initial_directory = os.path.abspath(linelist_folder)
+
+    filetypes = [('CSV Files', '*.csv')]
+    infile = filedialog.askopenfilename(
+        title='Choose Line List File',
+        filetypes=filetypes,
+        defaultextension=".csv",
+        initialdir=initial_directory  # Set the initial directory
+    )
+
+    if infile:
+        linelistpath = infile
+        linelistfile = os.path.basename(linelistpath)
+        # Update the label with the selected/created file
+        linefile_name_label.config(text=str(linelistfile))
+
+        # headers = "lev_up,lev_low,lam, tau,intens,a_stein,e_up,g_up,xmin,xmax"
+
+        # Check if the file already exists
+        if os.path.exists(infile):
+            # File already exists, so check if the headers match
+            with open(infile, 'r') as existing_file:
+                first_line = existing_file.readline().strip()
+            # if first_line == headers:
+            #    # Headers match, no need to write them
+            #    pass
+            # else:
+            #    print("File selected is not a line save file")
+        else:
+            # File doesn't exist
+            print("File selected does not exist")
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+            
+def savelinefile():
+    global linesavefile
+    global linesavepath
+
+    # Set the initial directory to the created folder
+    initial_directory = os.path.abspath(linesave_folder)
+
+    filetypes = [('CSV Files', '*.csv')]
+    infile = filedialog.asksaveasfilename(
+        title='Choose or Define a File',
+        filetypes=filetypes,
+        defaultextension=".csv",
+        initialdir=initial_directory  # Set the initial directory
+    )
+
+    if infile:
+        linesavepath = infile
+        linesavefile = os.path.basename(linesavepath)
+        # Update the label with the selected/created file
+        savelinefile_name_label.config(text=str(linesavefile))
+
+        headers = "species,lev_up,lev_low,lam,tau,intens,a_stein,e_up,g_up,xmin,xmax"
+
+        # Check if the file already exists
+        if os.path.exists(infile):
+            # File already exists, so check if the headers match
+            with open(infile, 'r') as existing_file:
+                first_line = existing_file.readline().strip()
+            if first_line == headers:
+                # Headers match, no need to write them
+                pass
+            elif not first_line:
+                # First line is empty, so write the headers
+                with open(infile, 'a') as file:
+                    file.write(headers + '\n')
+            else:
+                print("File selected is not a line save file")
+        else:
+            # File doesn't exist, create a new one and write headers
+            with open(infile, 'w') as file:
+                file.write(headers + '\n')
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+                
+def generate_all_csv():
+    for molecule in molecules_data:
+        mol_name = molecule[0]
+        mol_name_lower = mol_name.lower()
+
+        fluxes = globals().get(f'fluxes_{mol_name_lower}', np.array([]))
+        lambdas = globals().get(f'lambdas_{mol_name_lower}', np.array([]))
+
+        if fluxes.size == 0 or lambdas.size == 0 or len(fluxes) != len(lambdas):
+            continue
+
+        data = list(zip(lambdas, fluxes))
+
+        os.makedirs(output_dir, exist_ok=True)
+
+        csv_file_path = os.path.join(output_dir, f"{mol_name}_spec_output.csv")
+
+        with open(csv_file_path, "w", newline="") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(["wave", "flux"])
+            for row in data:
+                csv_writer.writerow(row)
+
+    # Get the fluxes and lambdas for the selected molecule
+    fluxes = globals().get('total_fluxes', [])
+    lambdas = globals().get('lambdas_h2o', np.array([]))
+
+    if len(fluxes) == 0 or lambdas.size == 0 or len(fluxes) != len(lambdas):
+        return
+
+    # Combine fluxes and lambdas into rows
+    data = list(zip(lambdas, fluxes))
+
+    # Create a directory if it doesn't exist
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Specify the full path for the CSV file
+    csv_file_path = os.path.join(output_dir, "SUM_spec_output.csv")
+
+    # Create a CSV file with the selected data in the "MODELS" directory
+    with open(csv_file_path, "w", newline="") as csv_file:
+        csv_writer = csv.writer(csv_file)
+        csv_writer.writerow(["wave", "flux"])
+        for row in data:
+            csv_writer.writerow(row)
+
+    data_field.delete('1.0', "end")
+    data_field.insert('1.0', f'All models exported into iSLAT/MODELS!')
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+                
+def generate_csv(mol_name):
+    if mol_name == "SUM":
+
+        # Get the fluxes and lambdas for the selected molecule
+        fluxes = globals().get('total_fluxes', [])
+        lambdas = globals().get('lambdas_h2o', np.array([]))
+
+        if len(fluxes) == 0 or lambdas.size == 0 or len(fluxes) != len(lambdas):
+            return
+
+        # Combine fluxes and lambdas into rows
+        data = list(zip(lambdas, fluxes))
+
+        # Create a directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Specify the full path for the CSV file
+        csv_file_path = os.path.join(output_dir, "SUM_spec_output.csv")
+
+        # Create a CSV file with the selected data in the "MODELS" directory
+        with open(csv_file_path, "w", newline="") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(["wave", "flux"])
+            for row in data:
+                csv_writer.writerow(row)
+
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'SUM model exported into iSLAT/MODELS!')
+
+    if mol_name == "ALL":
+        generate_all_csv()
+
+    else:
+        # Find the tuple for the selected molecule
+        molecule = next((m for m in molecules_data if m[0] == mol_name), None)
+        if molecule is None:
+            return
+
+        # Extract the lowercase version of the molecule name
+        mol_name_lower = mol_name.lower()
+
+        # Get the fluxes and lambdas for the selected molecule
+        fluxes = globals().get(f'fluxes_{mol_name_lower}', np.array([]))
+        lambdas = globals().get(f'lambdas_{mol_name_lower}', np.array([]))
+        line_prop = eval(f"{mol_name.lower()}_intensity.get_table")
+        line_prop.to_csv(output_dir + '/' + f"{mol_name}_line_params.csv", index=False)
+
+        if fluxes.size == 0 or lambdas.size == 0 or len(fluxes) != len(lambdas):
+            return
+
+        # Combine fluxes and lambdas into rows
+        data = list(zip(lambdas, fluxes))
+        # Create a directory if it doesn't exist
+        os.makedirs(output_dir, exist_ok=True)
+
+        # Specify the full path for the CSV file
+        csv_file_path = os.path.join(output_dir, f"{mol_name}_spec_output.csv")
+
+        # Create a CSV file with the selected data in the "MODELS" directory
+        with open(csv_file_path, "w", newline="") as csv_file:
+            csv_writer = csv.writer(csv_file)
+            csv_writer.writerow(["wave", "flux"])
+            for row in data:
+                csv_writer.writerow(row)
+
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', f'{mol_name} model exported into iSLAT/MODELS!')
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+        
+def import_molecule():
+    MoleculeSelector(root, data_field)
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+    
+def set_file_permissions(filename, mode):
+    print(' ')
+    print('Molecule paths file: ...')
+
+    try:
+        os.chmod(filename, mode)
+        print(f"Permissions set for {filename}")
+    except Exception as e:
+        print(f"File not found, permissions will be set when molecules are saved")
+
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+    
+def write_to_csv(data, confirmation=False):
+    if confirmation:
+        # Display a confirmation dialog
+        confirmed = tk.messagebox.askquestion("Confirmation",
+                                              "Sure you want to save? This will overwrite any previous save for this data file.")
+        if confirmed == "no":  # Check if user clicked "no"
+            return
+
+    csv_filename = os.path.join(save_folder, f"{file_name}-molsave.csv")
+
+    try:
+        with open(csv_filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            header = ['Molecule Name', 'File Path', 'Molecule Label', 'Temp', 'Rad', 'N_Mol', 'Color', 'Vis', 'Dist',
+                      'StellarRV', 'FWHM', 'Broad']
+            writer.writerow(header)
+
+            for mol_name, mol_filepath, mol_label in data:
+                row = [mol_name, mol_filepath, mol_label]
+                linevar = eval(f"{mol_name.lower()}_line")
+                linecolor = linevar.get_color()
+                # Append the variables for the current molecule to the row
+                row.append(globals().get(f"t_{mol_name.lower()}", ''))
+                row.append(globals().get(f"{mol_name.lower()}_radius", ''))
+                row.append(globals().get(f"n_mol_{mol_name.lower()}", ''))
+                row.append(linecolor)
+                row.append(globals().get(f"{mol_name.lower()}_vis", ''))
+                row.append(dist)
+                row.append(star_rv_entry.get())
+                row.append(fwhm)
+                row.append(intrinsic_line_width)
+
+                writer.writerow(row)
+
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'Molecule parameters saved into file.')
+        fig.canvas.draw_idle()
+    except Exception as e:
+        print("Error:", e)
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+        
+def write_user_csv(data):
+    csv_filename = os.path.join(save_folder, f"molecules_list.csv")
+
+    try:
+        with open(csv_filename, 'w', newline='') as csvfile:
+            writer = csv.writer(csvfile)
+            header = ['Molecule Name', 'File Path', 'Molecule Label', 'Temp', 'Rad', 'N_Mol', 'Color', 'Vis', 'Dist',
+                      'StellarRV', 'FWHM', 'Broad']
+            writer.writerow(header)
+
+            for mol_name, mol_filepath, mol_label in data:
+                row = [mol_name, mol_filepath, mol_label]
+                linevar = eval(f"{mol_name.lower()}_line")
+                linecolor = linevar.get_color()
+                # Append the variables for the current molecule to the row
+                row.append(globals().get(f"t_{mol_name.lower()}", ''))
+                row.append(globals().get(f"{mol_name.lower()}_radius", ''))
+                row.append(globals().get(f"n_mol_{mol_name.lower()}", ''))
+                row.append(linecolor)
+                row.append(globals().get(f"{mol_name.lower()}_vis", ''))
+                row.append(dist)
+                row.append(star_rv_entry.get())
+                row.append(fwhm)
+                row.append(intrinsic_line_width)
+
+                writer.writerow(row)
+
+        data_field.delete('1.0', "end")
+        data_field.insert('1.0', 'Molecule parameters saved into file.')
+        fig.canvas.draw_idle()
+    except Exception as e:
+        print("Error:", e)
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+        
+def down_molecule_data(val):
+    url = "https://hitran.org/lbl/"
+    browsers = ["chrome", "edge", "firefox", "safari"]
+
+    for browser_name in browsers:
+        try:
+            # Attempt to open the URL using webbrowser
+            webbrowser.get(browser_name).open(url)
+            break  # Stop trying if the browser opens the URL successfully
+        except webbrowser.Error:
+            try:
+                # Fallback to using 'os' to execute the browser's command directly
+                os.system(f"{browser_name} {url}")
+                break  # Stop trying if the command succeeds
+            except OSError:
+                continue  # Try the next browser if the current one fails       
+
+
+# -----------------------------------------------------------------------------
+# 
+# -----------------------------------------------------------------------------
+        
+# Define the span selecting function of the tool
+span = SpanSelector(
+    ax1,
+    onselect,
+    "horizontal",
+    useblit=False,
+    props=dict(alpha=0.5, facecolor="lime"),
+    interactive=True,
+    drag_from_anywhere=True
+)
+
 

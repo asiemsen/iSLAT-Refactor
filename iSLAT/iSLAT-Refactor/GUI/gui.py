@@ -585,6 +585,33 @@ def print_saved_lines():
     canvas.draw()
 
 # -----------------------------------------------------------------------------
+# Updates plot x-axis limits based on user input, adjusting ranges and UI entries
+# accordingly, then redraws the plot to reflect changes.
+# -----------------------------------------------------------------------------
+def update_xp1_rng():
+    global xp1, rng, xp2
+    # Get the values from the Tkinter Entry widgets and convert them to floats
+    min_lamb = float(min_lamb_entry.get())
+    max_lamb = float(max_lamb_entry.get())
+    xp1 = float(xp1_entry.get())
+    rng = float(rng_entry.get())
+    xp2 = xp1 + rng
+    if xp1 < min_lamb or xp1 > max_lamb:
+        if xp1 < min_lamb:
+            min_lamb = xp1
+            min_lamb_entry.delete(0, "end")
+            min_lamb_entry.insert(0, str(min_lamb))
+        if xp1 > max_lamb:
+            max_lamb = xp2
+            max_lamb_entry.delete(0, "end")
+            max_lamb_entry.insert(0, str(max_lamb))
+        update_initvals()
+    ax1.set_xlim(xmin=xp1, xmax=xp2)
+    print("Updated values: xp1 =", xp1, ", rng =", rng)
+    update()
+    canvas.draw()
+
+# -----------------------------------------------------------------------------
 #
 # -----------------------------------------------------------------------------
     

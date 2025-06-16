@@ -128,7 +128,6 @@ def fitmulti_line(xmin, xmax, onsel_lines):
 
 # -----------------------------------------------------------------------------
 #
-# -----------------------------------------------------------------------------
 
 """
 fit_line() uses LMFIT to fit a line and provide best-fit parameters.

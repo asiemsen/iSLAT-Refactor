@@ -5,11 +5,10 @@
 HITRAN_folder = "HITRANdata"
 os.makedirs(HITRAN_folder, exist_ok=True)
 
-variable_names = ['t_h2o', 'h2o_radius', 'n_mol_h2o', 't_oh', 'oh_radius', 'n_mol_oh', 't_hcn', 'hcn_radius',
-                  'n_mol_hcn', 't_c2h2', 'c2h2_radius', 'n_mol_c2h2']
-
 # -----------------------------------------------------------------------------
-# 
+# Initializes molecule data and simulation parameters based on user input.
+# Loads molecular files, sets default values, and creates global variables 
+# for each molecule's properties (e.g., temperature, radius, density).
 # -----------------------------------------------------------------------------
 
 selectfileinit()
@@ -79,15 +78,17 @@ for mol_name, mol_filepath, mol_label in molecules_data:
     exec(f"global {molecule_name_lower}_radius; {molecule_name_lower}_radius = {molecule_name_lower}_radius_init")
 
 # -----------------------------------------------------------------------------
-#
+# Initialize variables used elsewhere in the code
 # -----------------------------------------------------------------------------
 
 skip = False
 headers = True
 selectedline = False
-
+6
 # -----------------------------------------------------------------------------
-#
+# Main block to check and download HITRAN molecular line list files if missing.
+# Iterates through defined molecules and retrieves spectral data from HITRAN
+# within a specified wavelength range, saving it for later use.
 # -----------------------------------------------------------------------------
 
 if __name__ == "__main__":
@@ -129,7 +130,8 @@ if __name__ == "__main__":
 
 
 # -----------------------------------------------------------------------------
-#
+# Defines default molecules with their data file paths and labels.
+# Copies the default list for backup and initializes a list for deleted molecules.
 # -----------------------------------------------------------------------------
 
 # Define the default molecules and their file path; the folder must be in the same path as iSLAT
@@ -157,7 +159,8 @@ molecules_data_default = molecules_data.copy()
 deleted_molecules = []
 
 # -----------------------------------------------------------------------------
-#
+# Ensure required directories exist for saving models, outputs, and line data.
+# Creates 'SAVES', '../MODELS', and 'LINESAVES' folders if they don't already exist.
 # -----------------------------------------------------------------------------
 
 # Create necessary folders, if it doesn't exist (typically at first launch of iSLAT)
@@ -169,7 +172,8 @@ linesave_folder = "LINESAVES"
 os.makedirs(linesave_folder, exist_ok=True)
 
 # -----------------------------------------------------------------------------
-#
+# For each molecule, compute intensity based on kinetic temperature and column density,
+# generate its spectrum, add the intensity to the spectrum, and extract flux and wavelength arrays.
 # -----------------------------------------------------------------------------
 
 for mol_name, mol_filepath, mol_label in molecules_data:
@@ -194,7 +198,8 @@ for mol_name, mol_filepath, mol_label in molecules_data:
 
 
 # -----------------------------------------------------------------------------
-#
+# Prepares the line identifier tool by setting intensity table indices, writing default data to CSV,
+# and adjusting permissions for the saved molecule file.
 # -----------------------------------------------------------------------------
 # Setting up the line identifier tool
 int_pars = h2o_intensity.get_table
@@ -207,8 +212,10 @@ set_file_permissions(csv_perm_path, 0o666)  # Here, 0o666 sets read and write pe
 
 
 # -----------------------------------------------------------------------------
-#
+# Reads additional molecule data from a previous iSLAT session's saved CSV file,
+# returning the saved entries if available, otherwise falling back to default data.
 # -----------------------------------------------------------------------------
+
 # read more molecules if saved by the user in a previous iSLAT session
 def read_from_csv():
     global file_name
@@ -225,7 +232,8 @@ def read_from_csv():
     return molecules_data
 
 # -----------------------------------------------------------------------------
-#
+# Reads default molecule data from 'default.csv' if available;
+# otherwise returns the predefined molecules_data.
 # -----------------------------------------------------------------------------
 
 def read_default_csv():
@@ -243,7 +251,8 @@ def read_default_csv():
     return molecules_data
 
 # -----------------------------------------------------------------------------
-#
+# Reads user-saved molecule list from 'molecules_list.csv' if it exists;
+# otherwise returns the default molecules_data.
 # -----------------------------------------------------------------------------
 
 
@@ -263,7 +272,9 @@ def read_from_user_csv():
     return molecules_data
 
 # -----------------------------------------------------------------------------
-#
+# Defines default and molecule-specific initial parameters for model generation,
+# including physical constants, spectral settings, and thresholds used throughout
+# the application.
 # -----------------------------------------------------------------------------
 
 # Set default initial parameters for a new molecule
@@ -345,7 +356,11 @@ line_threshold = 0.03  # percent value (where 0.01 = 1%) of the strongest line i
 # lines below this this limit are ignored in the plot and in the single line selection
 
 # -----------------------------------------------------------------------------
-# NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS
+# NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS.
+# Runs the slab fitting procedure for the selected molecule by loading spectral
+# data, performing model fitting, saving results to CSV files, updating GUI
+# fields with fit parameters, and refreshing plots.
+# Handles missing input files and updates status messages accordingly.
 # -----------------------------------------------------------------------------
 
 def run_slabfit():
@@ -449,6 +464,9 @@ def run_slabfit():
 
 # -----------------------------------------------------------------------------
 # NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS
+# Saves the currently selected spectral line data to a CSV file if a line is
+# selected and the save path is defined. Updates the GUI text field with status
+# messages and refreshes the plot display accordingly.
 # -----------------------------------------------------------------------------
 
 """
@@ -490,6 +508,11 @@ def Save():
 
 # -----------------------------------------------------------------------------
 # NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS
+# Performs multi-line Gaussian fitting (de-blending) on the selected spectral
+# line region using LMFIT. Calculates line parameters such as flux, FWHM,
+# centroid, and associated errors for each fitted line. Saves the de-blended
+# results to a CSV file and updates the GUI status and plots accordingly.
+# If no line is selected, shows an error message in the GUI.
 # -----------------------------------------------------------------------------
 
 
@@ -577,6 +600,14 @@ def fitmulti_onselect():
 
 # -----------------------------------------------------------------------------
 # NEEDS TO BE REFACTORED, HAS SOME GUI COMPONENTS
+# Loads a saved line list CSV and performs Gaussian fitting on each spectral line
+# region defined by xmin and xmax columns. For each line, calculates flux and 
+# uncertainty from the raw data and from the Gaussian fit. Determines detection 
+# significance for both data and fit results, updates the DataFrame with fit 
+# parameters, errors, Doppler shifts, and reduced chi-square values. Calculates 
+# rotation diagram y-values for each line. Saves the updated line list back to 
+# the output CSV file. Updates the GUI with status messages and redraws the plot.
+# If the input or output file paths are undefined, updates the GUI with an error.
 # -----------------------------------------------------------------------------
 
 def fit_saved_lines():
@@ -663,7 +694,8 @@ def fit_saved_lines():
             canvas.draw()
 
 # -----------------------------------------------------------------------------
-# 
+# Updates global variables xp1 and xp2 to the current x-axis limits.
+# This lets other parts of the program know the visible x-range after zooming or panning.
 # -----------------------------------------------------------------------------
 
 """
@@ -679,7 +711,7 @@ def on_xlims_change(event_ax):
     xp1, xp2 = event_ax.get_xlim()
 
 # -----------------------------------------------------------------------------
-# 
+# Integrates flux and error over a given wavelength range and returns the results.
 # -----------------------------------------------------------------------------
     
 """
@@ -698,32 +730,9 @@ def flux_integral(lam, flux, err, lam_min, lam_max):
     return line_flux_meas, line_err_meas
 
 # -----------------------------------------------------------------------------
-# 
-# -----------------------------------------------------------------------------
-def update_xp1_rng():
-    global xp1, rng, xp2
-    # Get the values from the Tkinter Entry widgets and convert them to floats
-    min_lamb = float(min_lamb_entry.get())
-    max_lamb = float(max_lamb_entry.get())
-    xp1 = float(xp1_entry.get())
-    rng = float(rng_entry.get())
-    xp2 = xp1 + rng
-    if xp1 < min_lamb or xp1 > max_lamb:
-        if xp1 < min_lamb:
-            min_lamb = xp1
-            min_lamb_entry.delete(0, "end")
-            min_lamb_entry.insert(0, str(min_lamb))
-        if xp1 > max_lamb:
-            max_lamb = xp2
-            max_lamb_entry.delete(0, "end")
-            max_lamb_entry.insert(0, str(max_lamb))
-        update_initvals()
-    ax1.set_xlim(xmin=xp1, xmax=xp2)
-    print("Updated values: xp1 =", xp1, ", rng =", rng)
-    update()
-    canvas.draw()
-# -----------------------------------------------------------------------------
-# 
+# Retrieves updated parameter values from the UI, recalculates dependent variables,
+# adjusts spectral resolution settings, updates wavelength data for stellar velocity,
+# and refreshes the display and plot accordingly.
 # -----------------------------------------------------------------------------
 def update_initvals():
     global min_lamb, max_lamb, dist, fwhm, star_rv, model_line_width, model_pixel_res, intrinsic_line_width, wave_data, pix_per_fwhm
@@ -750,7 +759,8 @@ def update_initvals():
     # time.sleep(2)
 
 # -----------------------------------------------------------------------------
-# 
+# Updates the molecule save CSV by removing any existing entry matching the current
+# molecule name, ensuring only the latest data is stored for that molecule.
 # -----------------------------------------------------------------------------
 
 def update_csv():
@@ -778,14 +788,17 @@ def update_csv():
         print(f"Error updating {csv_file}: {e}")
 
 # -----------------------------------------------------------------------------
-# 
+# Triggered when the "Save Parameters" button is clicked; writes current
+# molecule data to CSV by calling the write_to_csv function.
 # -----------------------------------------------------------------------------
 
 def saveparams_button_clicked():
     write_to_csv(molecules_data, True)
 
 # -----------------------------------------------------------------------------
-# 
+# Writes default molecule parameters to "default.csv", including names,
+# file paths, labels, and associated global properties such as temperature,
+# radius, abundance, and visibility.
 # -----------------------------------------------------------------------------
 
 def write_default_csv(data):
@@ -809,7 +822,9 @@ def write_default_csv(data):
         print("Error:", e)
 
 # -----------------------------------------------------------------------------
-# 
+# Opens and loads spectrum data from a user-selected CSV file, extracts wave,
+# flux, and error values, and updates viewing window parameters if needed.
+# Ensures GUI elements reflect newly loaded data for further analysis.
 # -----------------------------------------------------------------------------
         
 # Function to open spectrum data file from the GUI using Open File for "Spectrum data file"
@@ -873,7 +888,8 @@ def selectfile():
 
 
 # -----------------------------------------------------------------------------
-# 
+# Opens a file dialog to select a line list CSV file, updates global path
+# and filename variables, and updates the GUI label with the selected file name.
 # -----------------------------------------------------------------------------
         
 def selectlinefile():
@@ -917,7 +933,8 @@ def selectlinefile():
             print("File selected does not exist")
 
 # -----------------------------------------------------------------------------
-# 
+# Opens a save file dialog to define or select a line save CSV file, ensures
+# correct headers are written, and updates global path and filename variables.
 # -----------------------------------------------------------------------------
             
 def savelinefile():
@@ -963,7 +980,8 @@ def savelinefile():
                 file.write(headers + '\n')
 
 # -----------------------------------------------------------------------------
-# 
+# Generates and exports individual and combined spectral data CSV files for
+# all molecules and the total model flux, saving them into the output directory.
 # -----------------------------------------------------------------------------
                 
 def generate_all_csv():
@@ -1016,7 +1034,9 @@ def generate_all_csv():
     data_field.insert('1.0', f'All models exported into iSLAT/MODELS!')
 
 # -----------------------------------------------------------------------------
-# 
+# Exports spectral data and line parameters for a selected molecule, or all 
+# molecules, into CSV format for external use. Handles special cases like "SUM"
+# (total flux model) and "ALL" (bulk export of all models).
 # -----------------------------------------------------------------------------
                 
 def generate_csv(mol_name):
@@ -1088,14 +1108,16 @@ def generate_csv(mol_name):
         data_field.insert('1.0', f'{mol_name} model exported into iSLAT/MODELS!')
 
 # -----------------------------------------------------------------------------
-# 
+# Opens the molecule import interface by launching the MoleculeSelector GUI,
+# allowing the user to select and add new molecules to the application.
 # -----------------------------------------------------------------------------
         
 def import_molecule():
     MoleculeSelector(root, data_field)
 
 # -----------------------------------------------------------------------------
-# 
+# Attempts to set file permissions for the specified file. If the file is not
+# found, it defers permission setting until the file is created.
 # -----------------------------------------------------------------------------
     
 def set_file_permissions(filename, mode):
@@ -1110,7 +1132,8 @@ def set_file_permissions(filename, mode):
 
 
 # -----------------------------------------------------------------------------
-# 
+# Saves molecule parameters to a CSV file, optionally confirming overwrite.
+# Updates the GUI and redraws the figure on success. Prints errors if any occur.
 # -----------------------------------------------------------------------------
     
 def write_to_csv(data, confirmation=False):
@@ -1154,7 +1177,8 @@ def write_to_csv(data, confirmation=False):
         print("Error:", e)
 
 # -----------------------------------------------------------------------------
-# 
+# Writes molecule parameters to a fixed CSV file and updates the GUI on success.
+# Prints errors if saving fails.
 # -----------------------------------------------------------------------------
         
 def write_user_csv(data):
@@ -1191,7 +1215,8 @@ def write_user_csv(data):
         print("Error:", e)
 
 # -----------------------------------------------------------------------------
-# 
+# Opens the HITRAN molecule data webpage using common browsers, trying fallbacks.
+# Stops after successfully opening the URL.
 # -----------------------------------------------------------------------------
         
 def down_molecule_data(val):
@@ -1213,7 +1238,8 @@ def down_molecule_data(val):
 
 
 # -----------------------------------------------------------------------------
-# 
+# Creates a horizontal span selector on ax1 with interactive, draggable features,
+# calling 'onselect' when a span is selected.
 # -----------------------------------------------------------------------------
         
 # Define the span selecting function of the tool

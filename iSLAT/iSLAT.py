@@ -125,7 +125,7 @@ deleted_molecules = []
 # Create necessary folders, if it doesn't exist (typically at first launch of iSLAT)
 save_folder = "SAVES"
 os.makedirs(save_folder, exist_ok=True)
-output_dir = "../MODELS"
+output_dir = "MODELS"
 os.makedirs(output_dir, exist_ok=True)
 linesave_folder = "LINESAVES"
 os.makedirs(linesave_folder, exist_ok=True)
@@ -306,7 +306,7 @@ def run_slabfit():
         R_best = np.round(result[2], decimals=2)
         N_best = format(10.0 ** result[1], '.3g')
 
-        output_path = "../MODELS/"
+        output_path = "MODELS/"
         chi2_h2o = data_loader.chi2_h2o
         chi2 = chi2_h2o.chi2_total
         red_chi2 = chi2 / (len(chi2_h2o.measurements) - 3)
@@ -1285,7 +1285,7 @@ def print_atomic_lines():
     update()
     ax1.callbacks.connect('xlim_changed', on_xlims_change)
 
-    svd_lns = pd.read_csv("../LINELISTS/Atomic_lines.csv", sep=',')
+    svd_lns = pd.read_csv("LINELISTS/Atomic_lines.csv", sep=',')
     svd_lamb = np.array(svd_lns['wave'])
     svd_species = svd_lns['species']
     svd_lineID = np.array(svd_lns['line'])
@@ -1894,7 +1894,7 @@ def selectfileinit():
     global mode
     global xp1, rng, xp2
 
-    spectra_directory = os.path.abspath("../EXAMPLE-data")
+    spectra_directory = os.path.abspath("EXAMPLE-data")
     filetypes = [('CSV Files', '*.csv')]
     # Ask the user to select a file
     infiles = filedialog.askopenfilename(multiple=True, title='Choose Spectrum Data File', filetypes=filetypes,
@@ -3064,7 +3064,7 @@ def selectfile():
     global xp1, rng, xp2, xp1_entry, rng_entry
 
     filetypes = [('CSV Files', '*.csv')]
-    spectra_directory = os.path.abspath("../EXAMPLE-data")
+    spectra_directory = os.path.abspath("EXAMPLE-data")
     infiles = filedialog.askopenfilename(multiple=True, title='Choose Spectrum Data File', filetypes=filetypes,
                                          initialdir=spectra_directory)
 
@@ -3777,7 +3777,7 @@ def add_molecule_data():
 
     # Define the filetypes to accept, in this case, only .par files
     molfiletypes = [('PAR Files', '*.par')]
-    hitran_directory = os.path.abspath("../HITRANdata")
+    hitran_directory = os.path.abspath("HITRANdata")
 
     # Ask the user to select a data file
     inmolfiles = filedialog.askopenfilename(multiple=True, title='Choose HITRAN Molecule Data File',

@@ -5,6 +5,7 @@
 # python -m iSLAT-Refactor.main
 
 
+
 import tkinter as tk
 
 from mixed.mixed import selectfileinit
@@ -67,6 +68,8 @@ for mol_name, mol_filepath, mol_label in molecules_data:
         "radius_init": radius_init,
         "n_mol_init": n_mol_init
     }
+
+
 
 
 

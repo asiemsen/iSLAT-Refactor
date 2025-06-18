@@ -19,9 +19,11 @@ except ImportError:
     pd = None
     pass
 
-from ir_model.moldata import MolData
-from ir_model.constants import constants as c
+# from ir_model.moldata import MolData
+# from ir_model.constants import constants as c
 
+from .moldata import MolData
+from .constants import constants as c
 
 __all__ = ["Intensity"]
 

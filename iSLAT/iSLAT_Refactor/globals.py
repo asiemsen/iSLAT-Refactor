@@ -1,0 +1,100 @@
+
+
+# Define the default molecules and their file path; the folder must be in the same path as iSLAT
+MOLECULES_DATA = [
+    ("H2O", "HITRANdata/data_Hitran_2020_H2O.par", "H$_2$O"),
+    ("OH", "HITRANdata/data_Hitran_2020_OH.par", "OH"),
+    ("HCN", "HITRANdata/data_Hitran_2020_HCN.par", "HCN"),
+    ("C2H2", "HITRANdata/data_Hitran_2020_C2H2.par", "C$_2$H$_2$"),
+    ("CO2", "HITRANdata/data_Hitran_2020_CO2.par", "CO$_2$"),
+    ("CO", "HITRANdata/data_Hitran_2020_CO.par", "CO")
+    # Add more molecules here if needed
+]
+
+DEFAULT_DATA = [
+    ("H2O", "HITRANdata/data_Hitran_2020_H2O.par", "H$_2$O"),
+    ("OH", "HITRANdata/data_Hitran_2020_OH.par", "OH"),
+    ("HCN", "HITRANdata/data_Hitran_2020_HCN.par", "HCN"),
+    ("C2H2", "HITRANdata/data_Hitran_2020_C2H2.par", "C$_2$H$_2$"),
+    ("CO2", "HITRANdata/data_Hitran_2020_CO2.par", "CO$_2$"),
+    ("CO", "HITRANdata/data_Hitran_2020_CO.par", "CO")
+]
+
+# Set default initial parameters for a new molecule
+DEFAULT_INITIAL_PARAMS = {
+    "scale_exponent": 17,
+    "scale_number": 1,
+    "t_kin": 600,
+    "radius_init": 0.5
+}
+
+# Define the initial parameters for default molecules
+INITIAL_PARAMETERS = {
+    "H2O": {
+        "scale_exponent": 18,
+        "scale_number": 1,
+        "t_kin": 850,
+        "radius_init": 0.5
+    },
+    "OH": {
+        "scale_exponent": 16,
+        "scale_number": 1,
+        "t_kin": 2000,
+        "radius_init": 0.3
+    },
+    "HCN": {
+        "scale_exponent": 16,
+        "scale_number": 1,
+        "t_kin": 850,
+        "radius_init": 0.5
+    },
+    "C2H2": {
+        "scale_exponent": 17,
+        "scale_number": 1,
+        "t_kin": 600,
+        "radius_init": 0.1
+    },
+    "CO2": {
+        "scale_exponent": 17,
+        "scale_number": 1,
+        "t_kin": 300,
+        "radius_init": 0.5
+    },
+    "CO": {
+        "scale_exponent": 18,
+        "scale_number": 1,
+        "t_kin": 1200,
+        "radius_init": 0.4
+    }
+}
+
+# Set-up default input parameters for model generation
+min_lamb = 4.5
+max_lamb = 28.
+dist = 160.0
+star_rv = 0.0
+fwhm = 130.  # FWHM of the observed lines or instrument
+pix_per_fwhm = 10  # number of pixels per fwhm element
+
+intrinsic_line_width = 1.0
+cc = 2.99792458e5  # speed of light in km/s
+model_line_width = cc / fwhm
+model_pixel_res = (np.mean ([min_lamb, max_lamb]) / cc * fwhm) / pix_per_fwhm
+
+# Constants used in generating the rotation diagram
+au = 1.496e11  # 1AU in m
+pc = 3.08567758128e18  # From parsec to cm
+ccum = 2.99792458e14  # speed of light in um/s
+hh = 6.62606896e-27  # erg s
+
+# Dictionary to store the initial values for each chemical
+initial_values = {}
+
+# define other defaults needed below
+spanmol = "h2o"
+specsep = .01  # default value for the separation to determine if line is single
+fwhmtolerance = 5  # default value for the tolerance in FWHM for the de-blender (in km/s)
+centrtolerance = 0.0001 # default value for the tolerance in centroid for the de-blender (in um)
+line_threshold = 0.03  # percent value (where 0.01 = 1%) of the strongest line in the plot;
+# lines below this this limit are ignored in the plot and in the single line selection
+

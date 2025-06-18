@@ -13,8 +13,8 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 
-from iSLAT.iSLAT_Refactor.mixed.mixed import selectfileinit
-from iSLAT.iSLAT_Refactor.core.core import read_from_user_csv
+from iSLAT.iSLAT_Refactor.mixed.select_file import selectfileinit
+from iSLAT.iSLAT_Refactor.core.read_csv import read_from_user_csv
 from iSLAT.ir_model.moldata import MolData
 import iSLAT.iSLAT_Refactor.globals 
 

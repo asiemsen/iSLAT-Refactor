@@ -2,6 +2,7 @@ from tkinter import filedialog
 import tkinter as tk
 import os
 import numpy as np
+import pandas as pd
 
 def selectfileinit():
     global file_path

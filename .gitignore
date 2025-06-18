@@ -1,0 +1,18 @@
+# Data and save directories
+iSLAT/HITRANdata/
+iSLAT/SAVES/
+
+# IDE files
+iSLAT/.idea/
+.idea/
+
+# Virtual environment
+.venv/
+
+# Python cache and bytecode
+__pycache__/
+*.py[cod]
+*$py.class
+
+# macOS system files
+.DS_Store

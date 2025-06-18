@@ -79,7 +79,7 @@ pix_per_fwhm = 10  # number of pixels per fwhm element
 intrinsic_line_width = 1.0
 cc = 2.99792458e5  # speed of light in km/s
 model_line_width = cc / fwhm
-model_pixel_res = (np.mean ([min_lamb, max_lamb]) / cc * fwhm) / pix_per_fwhm
+# model_pixel_res = (np.mean ([min_lamb, max_lamb]) / cc * fwhm) / pix_per_fwhm
 
 # Constants used in generating the rotation diagram
 au = 1.496e11  # 1AU in m
@@ -98,3 +98,17 @@ centrtolerance = 0.0001 # default value for the tolerance in centroid for the de
 line_threshold = 0.03  # percent value (where 0.01 = 1%) of the strongest line in the plot;
 # lines below this this limit are ignored in the plot and in the single line selection
 
+
+#selectfileinit global variables
+file_path = None
+file_name = None
+wave_data = None
+flux_data = None
+err_data = None
+wave_original = None
+input_spectrum_data = None
+filename_box_data = None
+mode = False
+xp1 = 0
+rng = 0
+xp2 = 10

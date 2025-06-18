@@ -1,3 +1,4 @@
+import os
 # -----------------------------------------------------------------------------
 # create HITRAN folder, only needed for first start
 # -----------------------------------------------------------------------------
@@ -254,6 +255,7 @@ def read_default_csv():
 # Reads user-saved molecule list from 'molecules_list.csv' if it exists;
 # otherwise returns the default molecules_data.
 # -----------------------------------------------------------------------------
+
 
 
 # read more molecules if saved by the user in a previous iSLAT session

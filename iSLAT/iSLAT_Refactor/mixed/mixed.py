@@ -625,7 +625,7 @@ def onpick3(event):
 
             fig.canvas.draw()
 
-    fig.canvas.mpl_connect('pick_event', onpick3)
+        fig.canvas.mpl_connect('pick_event', onpick3)
 
 # -----------------------------------------------------------------------------
 #
@@ -1147,6 +1147,11 @@ def submit_rad(event, text):
 # -----------------------------------------------------------------------------
 #
 # -----------------------------------------------------------------------------
+from tkinter import filedialog
+import tkinter as tk
+import os
+import numpy as np
+
 def selectfileinit():
     global file_path
     global file_name

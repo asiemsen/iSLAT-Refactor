@@ -4,14 +4,9 @@ import os
 import numpy as np
 import pandas as pd
 
+from iSLAT_Refactor import app_globals
+
 def selectfileinit():
-    global file_path
-    global file_name
-    global wave_data, flux_data, err_data, wave_original
-    global input_spectrum_data
-    global filename_box_data
-    global mode
-    global xp1, rng, xp2
 
     spectra_directory = os.path.abspath("../EXAMPLE-data")
     filetypes = [('CSV Files', '*.csv')]
@@ -20,27 +15,27 @@ def selectfileinit():
                                          initialdir=spectra_directory)
 
     if infiles:
-        for file_path in infiles:
+        for app_globals.file_path in infiles:
             # Process each selected file
             print(' ')
-            print("Selected file:", file_path)
-            file_name = os.path.basename(file_path)
+            print("Selected file:", app_globals.file_path)
+            app_globals.file_name = os.path.basename(app_globals.file_path)
             # code to process each file
-            input_spectrum_data = pd.read_csv(filepath_or_buffer=file_path, sep=',')
-            wave_data = np.array(input_spectrum_data['wave'])
-            wave_original = np.array(input_spectrum_data['wave'])
-            flux_data = np.array(input_spectrum_data['flux'])
-            if 'err' in input_spectrum_data:
-                err_data = np.array(input_spectrum_data['err'])
+            app_globals.input_spectrum_data = pd.read_csv(filepath_or_buffer=app_globals.file_path, sep=',')
+            app_globals.wave_data = np.array(app_globals.input_spectrum_data['wave'])
+            app_globals.wave_original = np.array(app_globals.input_spectrum_data['wave'])
+            app_globals.flux_data = np.array(app_globals.input_spectrum_data['flux'])
+            if 'err' in app_globals.input_spectrum_data:
+                app_globals.err_data = np.array(app_globals.input_spectrum_data['err'])
             else:
-                err_data = np.full_like(flux_data, np.nanmedian(flux_data) / 100)  # assumed, if not present
+                app_globals.err_data = np.full_like(app_globals.flux_data, np.nanmedian(app_globals.flux_data) / 100)  # assumed, if not present
 
                 # Set initial values of xp1 and rng
-            fig_max_limit = np.nanmax(wave_data)
-            fig_min_limit = np.nanmin(wave_data)
-            xp1 = np.around(fig_min_limit + (fig_max_limit - fig_min_limit) / 2, decimals=2)
-            rng = np.around((fig_max_limit - fig_min_limit) / 10, decimals=2)
-            xp2 = xp1 + rng
+            fig_max_limit = np.nanmax(app_globals.wave_data)
+            fig_min_limit = np.nanmin(app_globals.wave_data)
+            app_globals.xp1 = np.around(fig_min_limit + (fig_max_limit - fig_min_limit) / 2, decimals=2)
+            app_globals.rng = np.around((fig_max_limit - fig_min_limit) / 10, decimals=2)
+            app_globals.xp2 = app_globals.xp1 + app_globals.rng
 
             # now = dt.now()
             # dateandtime = now.strftime("%d-%m-%Y-%H-%M-%S")
@@ -51,8 +46,8 @@ def selectfileinit():
         mode_dialog = tk.messagebox.askquestion("Select Mode", "Would you like to start iSLAT in Dark Mode?")
 
         if mode_dialog == 'yes':
-            mode = True  # Dark mode
+            app_globals.mode= True  # Dark mode
         else:
-            mode = False  # Light mode
+            app_globals.mode= False  # Light mode
     else:
         print("No files selected.")

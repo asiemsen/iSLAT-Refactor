@@ -1,7 +1,7 @@
 #new entry point for iSLAT
 
 # RUN WITH :
-# cd iSLAT-Refactor
+# cd iSLAT
 # python -m iSLAT-Refactor.main
 
 import os
@@ -13,10 +13,12 @@ import matplotlib.pyplot as plt
 from matplotlib.gridspec import GridSpec
 
 
-from iSLAT.iSLAT_Refactor.mixed.select_file import selectfileinit
-from iSLAT.iSLAT_Refactor.core.read_csv import read_from_user_csv
-from iSLAT.ir_model.moldata import MolData
-import iSLAT.iSLAT_Refactor.globals 
+from iSLAT_Refactor.mixed.select_file import selectfileinit
+from iSLAT_Refactor.core.read_csv import read_from_user_csv
+from ir_model.moldata import MolData
+from iSLAT_Refactor import app_globals
+
+print("LOADING REFACTORED iSLAT")
 
 # light mode settings
 mode = False 
@@ -39,7 +41,7 @@ for mol_name, mol_filepath, mol_label in molecules_data:
     mol_data = MolData(mol_name, mol_filepath)
 
     # Get the initial parameters for the current molecule, use default if not defined
-    params = globals.INITIAL_PARAMETERS.get(mol_name, globals.DEFAULT_INITIAL_PARAMS)
+    params = app_globals.INITIAL_PARAMETERS.get(mol_name, app_globals.DEFAULT_INITIAL_PARAMS)
     scale_exponent = params["scale_exponent"]
     scale_number = params["scale_number"]
     t_kin = params["t_kin"]
@@ -66,7 +68,7 @@ for mol_name, mol_filepath, mol_label in molecules_data:
     # print()  # Empty line for spacing
 
     # Store the initial values in the dictionary
-    globals.initial_values[mol_name.lower ()] = {
+    app_globals.initial_values[mol_name.lower ()] = {
         "scale_exponent": scale_exponent,
         "scale_number": scale_number,
         "t_kin": t_kin,
@@ -85,14 +87,14 @@ ax3 = fig.add_subplot (gs[1, 1])
 ax2.set_xlabel('Wavelength (μm)')
 ax1.set_ylabel('Flux density (Jy)')
 ax2.set_ylabel('Flux density (Jy)')
-ax1.set_xlim(xmin=globals.xp1, xmax=globals.xp2) # (xmin = xp1, xmax = xp2)
+ax1.set_xlim(xmin=app_globals.xp1, xmax=app_globals.xp2) # (xmin = xp1, xmax = xp2)
 plt.rcParams['font.size'] = 10
 
 #DUMMY DATA 
 dummy_wave = np.linspace(0, 10, 10)    # 10 points from 0 to 1 on x-axis
 dummy_flux = np.zeros_like(dummy_wave)
 
-data_line, = ax1.plot(globals.wave_data, globals.flux_data, color=foreground, linewidth=1)
+data_line, = ax1.plot(app_globals.wave_data, app_globals.flux_data, color=foreground, linewidth=1)
 
 data_line.set_label ('Data')
 sum_line, = ax1.plot ([], [], color='purple', linewidth=1)

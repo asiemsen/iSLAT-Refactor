@@ -1,6 +1,6 @@
 import os
 import csv
-from iSLAT.iSLAT_Refactor.globals import MOLECULES_DATA
+from iSLAT_Refactor.app_globals import MOLECULES_DATA
 def read_from_user_csv():
     save_folder = 'SAVES'
     filename = os.path.join(save_folder, f"molecules_list.csv")

@@ -1,4 +1,6 @@
-from iSLAT_Refactor.app_globals import INITIAL_PARAMETERS, DEFAULT_INITIAL_PARAMS, intrinsic_line_width
+import numpy as np
+
+from iSLAT_Refactor import app_globals
 from ir_model.moldata import MolData
 from ir_model.intensity import Intensity
 from ir_model.spectrum import Spectrum
@@ -13,7 +15,7 @@ class MoleculeManager:
 
             molName = mol_name.lower()
 
-            params = INITIAL_PARAMETERS.get(mol_name, DEFAULT_INITIAL_PARAMS)
+            params = app_globals.INITIAL_PARAMETERS.get(mol_name, app_globals.DEFAULT_INITIAL_PARAMS)
             scale_exponent = params["scale_exponent"]
             scale_number = params["scale_number"]
             t_kin = params["t_kin"]
@@ -36,11 +38,20 @@ class MoleculeManager:
 
             # Intensity create/calc
             mol["intensity"] = Intensity(mol["data"])
-            mol["intensity"].calcIntensity(mol["t_kin"], mol["n_mol"], dv = intrinsic_line_width)
+            mol["intensity"].calcIntensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
 
             # Spectrum creation/calc
+            mol["spectrum"] = Spectrum(lam_min=app_globals.min_lamb, 
+                                       lam_max=app_globals.max_lamb, 
+                                       dlambda=app_globals.model_pixel_res,
+                                       R=app_globals.model_line_width,
+                                       distance=app_globals.dist)
             
+            mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
             
+            # Fluxes and Lambdas
+            mol["fluxes"] = mol["spectrum"].flux_jy
+            mol["lambdas"] = mol["spectrum"].lamgrid
 
 
             print (f"Molecule Initialized: {mol_name}")

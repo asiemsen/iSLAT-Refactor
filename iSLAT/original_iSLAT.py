@@ -1732,7 +1732,7 @@ def submit_temp(event, text):
     exec(f"{text}_line.set_data(lambdas_{text}, fluxes_{text})", globals())
 
     # Clearing the text feed box.
-    data_field.delete('1.0', "end")
+    data_field.delete('761.0', "end")
     data_field.insert('1.0', 'Temperature Updated!')
     plt.draw(), canvas.draw()
     fig.canvas.flush_events()

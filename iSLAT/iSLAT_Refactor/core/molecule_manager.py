@@ -1,5 +1,7 @@
-from iSLAT_Refactor.app_globals import INITIAL_PARAMETERS, DEFAULT_INITIAL_PARAMS
+from iSLAT_Refactor.app_globals import INITIAL_PARAMETERS, DEFAULT_INITIAL_PARAMS, intrinsic_line_width
 from ir_model.moldata import MolData
+from ir_model.intensity import Intensity
+from ir_model.spectrum import Spectrum
 
 class MoleculeManager: 
 
@@ -23,19 +25,39 @@ class MoleculeManager:
             if molName not in self.moleculeDictionary:
                 self.moleculeDictionary[molName] = {}
 
-            self.moleculeDictionary[molName]["data"] = MolData(mol_name, mol_filepath)
-            self.moleculeDictionary[molName]["scale_exponent"] = scale_exponent
-            self.moleculeDictionary[molName]["scale_number"] = scale_number
-            self.moleculeDictionary[molName]["t_kin"] = t_kin
-            self.moleculeDictionary[molName]["radius_init"] = radius_init
-            self.moleculeDictionary[molName]["n_mol_init"] = n_mol_init
+            mol = self.moleculeDictionary[molName]
+
+            mol["data"] = MolData(mol_name, mol_filepath)
+            mol["scale_exponent"] = scale_exponent
+            mol["scale_number"] = scale_number
+            mol["t_kin"] = t_kin   # t_kin vs t?
+            mol["radius"] = radius_init
+            mol["n_mol"] = n_mol_init # what is n_mol (column density?)
+
+            # Intensity create/calc
+            mol["intensity"] = Intensity(mol["data"])
+            mol["intensity"].calcIntensity(mol["t_kin"], mol["n_mol"], dv = intrinsic_line_width)
+
+            # Spectrum creation/calc
+            
+            
+
 
             print (f"Molecule Initialized: {mol_name}")
 
     
 
 
-
+# @dataclass
+# class Molecule:
+#     data: MolData
+#     scale_exponent: float
+#     scale_number: float
+#     t_kin: float
+#     radius_init: float
+#     n_mol_init: float
+# 
+# self.moleculeDictionary[molName] = Molecule(...)
 
 
 

@@ -20,6 +20,7 @@ from iSLAT_Refactor.core.read_csv import read_from_user_csv
 from ir_model.moldata import MolData
 from iSLAT_Refactor import app_globals
 from iSLAT_Refactor.GUI.tooltip import ToolTip, CreateToolTip
+from iSLAT_Refactor.core.molecule_manager import MoleculeManager
 
 print("LOADING REFACTORED iSLAT")
 

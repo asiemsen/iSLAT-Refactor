@@ -1,4 +1,4 @@
-
+import numpy as np
 
 # Define the default molecules and their file path; the folder must be in the same path as iSLAT
 MOLECULES_DATA = [
@@ -79,7 +79,7 @@ pix_per_fwhm = 10  # number of pixels per fwhm element
 intrinsic_line_width = 1.0
 cc = 2.99792458e5  # speed of light in km/s
 model_line_width = cc / fwhm
-# model_pixel_res = (np.mean ([min_lamb, max_lamb]) / cc * fwhm) / pix_per_fwhm
+model_pixel_res = (np.mean ([min_lamb, max_lamb]) / cc * fwhm) / pix_per_fwhm
 
 # Constants used in generating the rotation diagram
 au = 1.496e11  # 1AU in m

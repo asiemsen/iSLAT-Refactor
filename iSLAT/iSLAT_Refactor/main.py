@@ -40,45 +40,47 @@ print ('Loading molecule files: ...')
 
 molecules_data = read_from_user_csv()
 
-for mol_name, mol_filepath, mol_label in molecules_data:
-    # Import line lists from the ir_model folder
-    mol_data = MolData(mol_name, mol_filepath)
+moleculeManager = MoleculeManager(molecules_data)
 
-    # Get the initial parameters for the current molecule, use default if not defined
-    params = app_globals.INITIAL_PARAMETERS.get(mol_name, app_globals.DEFAULT_INITIAL_PARAMS)
-    scale_exponent = params["scale_exponent"]
-    scale_number = params["scale_number"]
-    t_kin = params["t_kin"]
-    radius_init = params["radius_init"]
+# for mol_name, mol_filepath, mol_label in molecules_data:
+#     # Import line lists from the ir_model folder
+#     mol_data = MolData(mol_name, mol_filepath)
 
-    # Calculate and set n_mol_init for the current molecule
-    n_mol_init = float (scale_number * (10 ** scale_exponent))
+#     # Get the initial parameters for the current molecule, use default if not defined
+#     params = app_globals.INITIAL_PARAMETERS.get(mol_name, app_globals.DEFAULT_INITIAL_PARAMS)
+#     scale_exponent = params["scale_exponent"]
+#     scale_number = params["scale_number"]
+#     t_kin = params["t_kin"]
+#     radius_init = params["radius_init"]
 
-    # Use exec() to create the variables with specific variable names for each molecule
-    exec (f"mol_{mol_name.lower ()} = MolData('{mol_name}', '{mol_filepath}')", globals ())
-    exec (f"scale_exponent_{mol_name.lower ()} = {scale_exponent}", globals ())
-    exec (f"scale_number_{mol_name.lower ()} = {scale_number}", globals ())
-    exec (f"n_mol_{mol_name.lower ()}_init = {n_mol_init}", globals ())
-    exec (f"t_kin_{mol_name.lower ()} = {t_kin}", globals ())
-    exec (f"{mol_name.lower ()}_radius_init = {radius_init}", globals ())
+#     # Calculate and set n_mol_init for the current molecule
+#     n_mol_init = float (scale_number * (10 ** scale_exponent))
 
-    # Print the results (you can modify this part as needed)
-    print (f"Molecule Initialized: {mol_name}")
-    # print(f"scale_exponent_{mol_name.lower()} = {scale_exponent}")
-    # print(f"scale_number_{mol_name.lower()} = {scale_number}")
-    # print(f"n_mol_{mol_name.lower()}_init = {n_mol_init}")
-    # print(f"t_kin_{mol_name.lower()} = {t_kin}")
-    # print(f"{mol_name.lower()}_radius_init = {radius_init}")
-    # print()  # Empty line for spacing
+#     # Use exec() to create the variables with specific variable names for each molecule
+#     exec (f"mol_{mol_name.lower ()} = MolData('{mol_name}', '{mol_filepath}')", globals ())
+#     exec (f"scale_exponent_{mol_name.lower ()} = {scale_exponent}", globals ())
+#     exec (f"scale_number_{mol_name.lower ()} = {scale_number}", globals ())
+#     exec (f"n_mol_{mol_name.lower ()}_init = {n_mol_init}", globals ())
+#     exec (f"t_kin_{mol_name.lower ()} = {t_kin}", globals ())
+#     exec (f"{mol_name.lower ()}_radius_init = {radius_init}", globals ())
 
-    # Store the initial values in the dictionary
-    app_globals.initial_values[mol_name.lower ()] = {
-        "scale_exponent": scale_exponent,
-        "scale_number": scale_number,
-        "t_kin": t_kin,
-        "radius_init": radius_init,
-        "n_mol_init": n_mol_init
-    }
+#     # Print the results (you can modify this part as needed)
+#     print (f"Molecule Initialized: {mol_name}")
+#     # print(f"scale_exponent_{mol_name.lower()} = {scale_exponent}")
+#     # print(f"scale_number_{mol_name.lower()} = {scale_number}")
+#     # print(f"n_mol_{mol_name.lower()}_init = {n_mol_init}")
+#     # print(f"t_kin_{mol_name.lower()} = {t_kin}")
+#     # print(f"{mol_name.lower()}_radius_init = {radius_init}")
+#     # print()  # Empty line for spacing
+
+#     # Store the initial values in the dictionary
+#     app_globals.initial_values[mol_name.lower ()] = {
+#         "scale_exponent": scale_exponent,
+#         "scale_number": scale_number,
+#         "t_kin": t_kin,
+#         "radius_init": radius_init,
+#         "n_mol_init": n_mol_init
+#     }
 
 # Creating the graph
 fig = plt.figure(figsize=(15, 8.5))
@@ -197,12 +199,13 @@ for row, (mol_name, mol_filepath, mol_label) in enumerate (molecules_data):
     y_row = start_y + row_height * (num_rows - row - 1)
     row = row + 1
     # Get the initial values for the current chemical from the dictionary
-    params = app_globals.initial_values[mol_name.lower ()]
+    # params = app_globals.initial_values[mol_name.lower ()]
+    params = moleculeManager.moleculeDictionary[mol_name.lower()]
     scale_exponent = params["scale_exponent"]
     scale_number = params["scale_number"]
     t_kin = params["t_kin"]
-    radius_init = params["radius_init"]
-    n_mol_init = params["n_mol_init"]
+    radius_init = params["radius"]
+    n_mol_init = params["n_mol"]
 
     # Row label
     exec (f"{mol_name.lower ()}_rowl_field = tk.Entry(molecule_frame, width=6)")
@@ -554,25 +557,25 @@ data_field.pack (fill="both", expand=True)
 
 # Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
 canvas = FigureCanvasTkAgg (fig, master=window)
-canvas_widget = canvas.get_tk_widget ()
+canvas_widget = canvas.get_tk_widget()
 
 # Place the canvas widget in column 9, row 1
-canvas_widget.grid (row=1, column=5, rowspan=100, sticky='nsew')
+canvas_widget.grid(row=1, column=5, rowspan=100, sticky='nsew')
 
 # Allow column 9 and row 1 to expandc
-window.grid_columnconfigure (5, weight=1)
-window.grid_rowconfigure (100, weight=1)
+window.grid_columnconfigure(5, weight=1)
+window.grid_rowconfigure(100, weight=1)
 
 # Create a frame for the toolbar inside the title_frame
 toolbar_frame = tk.Frame (title_frame)
 toolbar_frame.grid (row=0, column=9, columnspan=2, sticky="nsew")  # Place the frame in row 0, column 9
 # Create a toolbar and update it
 toolbar = NavigationToolbar2Tk (canvas, toolbar_frame)
-toolbar.update ()
+toolbar.update()
 
-title_frame.grid_columnconfigure (9, weight=1)
+title_frame.grid_columnconfigure(9, weight=1)
 
-plt.interactive (False)
+plt.interactive(False)
 
 file_button = tk.Button (files_frame, text='Open File', ) # command=selectfile
 file_button.grid (row=1, column=5)
@@ -619,4 +622,6 @@ for row, (mol_name, _, _) in enumerate (molecules_data, start=1):
     else:
         print ('Line object or color attribute not found for:', mol_name)
 
-window.mainloop ()
+moleculeManager.createLines(molecules_data, ax1)
+
+window.mainloop()

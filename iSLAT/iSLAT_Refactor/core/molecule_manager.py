@@ -38,7 +38,7 @@ class MoleculeManager:
 
             # Intensity create/calc
             mol["intensity"] = Intensity(mol["data"])
-            mol["intensity"].calcIntensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
+            mol["intensity"].calc_intensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
 
             # Spectrum creation/calc
             mol["spectrum"] = Spectrum(lam_min=app_globals.min_lamb, 
@@ -56,7 +56,21 @@ class MoleculeManager:
 
             print (f"Molecule Initialized: {mol_name}")
 
-    
+
+
+    def createLines(self, molecules_data, ax1):
+        for mol_name, mol_filepath, mol_label in molecules_data:
+
+            molName = mol_name.lower()
+            mol = self.moleculeDictionary[molName]
+
+            
+            if molName == 'h2o':
+                mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha = 0.8, linewidth = 1.0)
+        
+
+
+
 
 
 # @dataclass

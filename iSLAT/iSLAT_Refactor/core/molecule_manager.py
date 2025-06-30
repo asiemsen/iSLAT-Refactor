@@ -1,4 +1,7 @@
+
+
 import numpy as np
+import matplotlib.pyplot as plt
 
 from iSLAT_Refactor import app_globals
 from ir_model.moldata import MolData
@@ -28,6 +31,11 @@ class MoleculeManager:
                 self.moleculeDictionary[molName] = {}
 
             mol = self.moleculeDictionary[molName]
+
+            mol["is_visible"] = False
+
+            if molName == "h2o":
+                mol["is_visible"] = True
 
             mol["data"] = MolData(mol_name, mol_filepath)
             mol["scale_exponent"] = scale_exponent
@@ -63,11 +71,34 @@ class MoleculeManager:
 
             molName = mol_name.lower()
             mol = self.moleculeDictionary[molName]
-
             
-            if molName == 'h2o':
+            # Only showing h2o for now
+            # Load all molecules
+            # if molName == 'h2o':
+            if mol["is_visible"]:
                 mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha = 0.8, linewidth = 1.0)
+            else:
+                mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha=0.0, linewidth=1.0)
+
+
+
+
         
+
+    def toggle_visible(self, molName):
+
+        molName = molName.lower()
+        mol = self.moleculeDictionary[molName]
+        mol["is_visible"] = not mol["is_visible"]
+
+        if mol["is_visible"]:
+            mol["line_plot"].set_alpha(0.8)
+            # change alpha to 0.8
+        else:
+            mol["line_plot"].set_alpha(0.0)
+            # change alpha to 0.0
+
+        plt.draw()
 
 
 

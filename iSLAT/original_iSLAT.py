@@ -1857,7 +1857,7 @@ This function turn on/off the visibility of the line for the currently selected 
 
 
 # Function to update visibility when a button is clicked
-def model_visible(event):
+def model_visible(event):model_visible(
     # Update visibility based on the button that was clicked
     if globals()[f"{event}_vis"] == True:
         globals()[f"{event}_vis"] = False
@@ -2674,7 +2674,7 @@ def load_variables_from_file(file_name):
                                                                               variable=eval(
                                                                                   f"{mol_name.lower()}_vis_status"),
                                                                               command=lambda
-                                                                                  mn=mol_name.lower(): model_visible(
+                                                                                  mn=mol_name.lower():
                                                                                   mn))
             globals()[f"{mol_name.lower()}_vis_status"].set(False)  # Set the initial state
 

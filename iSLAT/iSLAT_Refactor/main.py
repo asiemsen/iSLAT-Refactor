@@ -5,7 +5,7 @@
 # python -m iSLAT-Refactor.main
 
 iSLAT_version = "Refactor Build"
-import matplotlib
+import matplotlib 
 matplotlib.use('TkAgg') # Use TkAgg backend
 import os
 import numpy as np
@@ -30,9 +30,11 @@ mode = False
 background = 'white'
 foreground = 'black'
 
-root = tk.Tk ()
-root.withdraw ()
-root.call ('wm', 'attributes', '.', '-topmost', True)
+window = tk.Tk ()
+window.withdraw ()
+window.call ('wm', 'attributes', '.', '-topmost', True)
+window.protocol("WM_DELETE_WINDOW", window.quit)
+
 
 selectfileinit()
 
@@ -51,15 +53,13 @@ ax1 = fig.add_subplot (gs[0, :])
 ax2 = fig.add_subplot (gs[1, 0])
 ax3 = fig.add_subplot (gs[1, 1])
 
+
+
 ax2.set_xlabel('Wavelength (μm)')
 ax1.set_ylabel('Flux density (Jy)')
 ax2.set_ylabel('Flux density (Jy)')
 ax1.set_xlim(xmin=app_globals.xp1, xmax=app_globals.xp2) # (xmin = xp1, xmax = xp2)
 plt.rcParams['font.size'] = 10
-
-#DUMMY DATA 
-dummy_wave = np.linspace(0, 10, 10)    # 10 points from 0 to 1 on x-axis
-dummy_flux = np.zeros_like(dummy_wave)
 
 data_line, = ax1.plot(app_globals.wave_data, app_globals.flux_data, color=foreground, linewidth=1)
 
@@ -104,8 +104,14 @@ column_labels = ['Molecule', 'Temp.', 'Radius', 'Col. Dens', 'On', 'Del.', 'Colo
 vis_buttons_dict = {}
 
 # Create a tkinter window
-window = tk.Tk()
+# window = tk.Tk()
+# window = root
+# root.deiconify()
 window.title("iSLAT " + iSLAT_version)
+# window.geometry("1200x800")
+window.deiconify()
+
+
 
 # create buttons for top of GUI
 nb_of_columns = 10  # to be replaced by the relevant number
@@ -217,8 +223,6 @@ for row, (mol_name, mol_filepath, mol_label) in enumerate (molecules_data):
         globals ()[f"{mol_name.lower ()}_vis_status"].set (False)  # Set the initial state
 
 
-        exec (f"{mol_name.lower ()}_vis_status.set(True)")
-
     eval (f"{mol_name.lower ()}_vis_checkbutton").grid (row=row, column=4)
 
     CreateToolTip (eval (f"{mol_name.lower ()}_vis_checkbutton"), text='Turn on/off this\n'
@@ -240,6 +244,7 @@ for row, (mol_name, mol_filepath, mol_label) in enumerate (molecules_data):
                                       'for this model')
 
     nextrow = row + 1
+
 
 
 files_frame = tk.Frame (window, borderwidth=2, relief="groove")
@@ -485,6 +490,8 @@ data_field.pack (fill="both", expand=True)
 # Storing the callback for on_xlims_change()
 # ax1.callbacks.connect ('xlim_changed', on_xlims_change)S
 
+
+
 # Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
 canvas = FigureCanvasTkAgg (fig, master=window)
 canvas_widget = canvas.get_tk_widget ()
@@ -537,6 +544,9 @@ toolbar_frame.grid (row=0, column=9, columnspan=2, sticky="nsew")  # Place the f
 toolbar = NavigationToolbar2Tk (canvas, toolbar_frame)
 toolbar.update()
 
+
+
+
 title_frame.grid_columnconfigure(9, weight=1)
 
 plt.interactive(False)
@@ -549,6 +559,7 @@ linefile_button.grid (row=3, column=5)
 
 linesave_button = tk.Button (files_frame, text='Define File', ) # command=savelinefile
 linesave_button.grid (row=5, column=5, pady=(0, 10))
+
 
 #FROM UPDATE() FUNCTION
 # for mol_name, mol_filepath, mol_label in molecules_data:
@@ -566,6 +577,8 @@ linesave_button.grid (row=5, column=5, pady=(0, 10))
 #             if label:
 #                 ax1.legend ().get_legend_handler_map ().pop (label, None)
 #                 line_var.set_label ("_nolegend_")
+
+
 
 for row, (mol_name, _, _) in enumerate (molecules_data, start=1):
     # Get the molecule name in lower case
@@ -588,4 +601,12 @@ for row, (mol_name, _, _) in enumerate (molecules_data, start=1):
 
 moleculeManager.createLines(molecules_data, ax1)
 
+
+
+# window.attributes('-fullscreen', True)   # full monitor
+# window.state('zoomed') 
+# window.update()
+# window.deiconify()
+
 window.mainloop()
+

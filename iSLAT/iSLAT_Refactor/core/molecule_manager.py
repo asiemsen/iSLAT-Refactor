@@ -65,25 +65,17 @@ class MoleculeManager:
             print (f"Molecule Initialized: {mol_name}")
 
 
-
     def createLines(self, molecules_data, ax1):
         for mol_name, mol_filepath, mol_label in molecules_data:
 
             molName = mol_name.lower()
             mol = self.moleculeDictionary[molName]
             
-            # Only showing h2o for now
-            # Load all molecules
-            # if molName == 'h2o':
             if mol["is_visible"]:
-                mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha = 0.8, linewidth = 1.0)
+                mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha = 0.8, linewidth = 1.0, ls = '--')
             else:
-                mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha=0.0, linewidth=1.0)
+                mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha=0.0, linewidth=1.0, ls = '--')
 
-
-
-
-        
 
     def toggle_visible(self, molName):
 
@@ -99,9 +91,6 @@ class MoleculeManager:
             # change alpha to 0.0
 
         plt.draw()
-
-
-
 
 
 # @dataclass

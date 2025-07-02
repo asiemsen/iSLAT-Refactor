@@ -39,16 +39,15 @@ class GUI_Manager:
 
         self.root = tk.Tk()
 
+
+        
+
         self.init_window()
         self.build_layout()
         self.initialize_graphs()
+        
 
-         # Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
-        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
-        self.canvas_widget = self.canvas.get_tk_widget()
-
-        # Place the canvas widget in column 9, row 1
-        self.canvas_widget.grid(row=1, column=1, rowspan=100, sticky='nsew')
+        
 
         # Grid resizing
         self.root.grid_rowconfigure(1, weight=1)
@@ -64,7 +63,7 @@ class GUI_Manager:
 
         self.root.title("iSLAT " + self.iSLAT_version)
 
-        self.root.geometry("1200x800")
+        # self.root.geometry("1200x800")
         self.root.deiconify()
         # self.root.after(100, self.root.deiconify)
 
@@ -72,15 +71,18 @@ class GUI_Manager:
         plt.rcParams['font.size'] = 10
         # Creating the graph
         self.fig = plt.figure(figsize=(15, 8.5))
+        # Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
+        self.canvas_widget = self.canvas.get_tk_widget()
+        self.canvas_widget.grid(row=1, column=1, sticky='nsew')
 
         self.gs = GridSpec(nrows=2, ncols=2, width_ratios=[1, 1], height_ratios=[1, 1.5])
 
         self.fig.subplots_adjust(left=0.06, right=0.97, top=0.97, bottom=0.09)
 
         self.createTitleFrame()
-        # create buttons for top of GUI
-        
 
+        # create buttons for top of GUI
         self.frame_manager = tk.Frame(self.root, bg ="gray")
         self.frame_manager.grid(row = 1, column = 0, sticky='nsew')
         tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack(fill = 'x')
@@ -127,10 +129,12 @@ class GUI_Manager:
 
     def createTitleFrame(self) -> None:
 
-        self.title_frame = tk.Frame(self.root, bg="red")
-        self.title_frame.grid(row=0, column=0, columnspan= 2, sticky='ew')
-        # tk.Label(self.title_frame, text="Title Frame", bg="gray").pack()
+        self.tf_nextCol = 0
 
+        self.title_frame = tk.Frame(self.root, bg="gray")
+        self.title_frame.grid(row=0, column=0, columnspan= 2, sticky='ew')
+
+        # Create title frame buttons
         buttons_info = [
             ("HITRAN query", 'lightgray', 'gray'), # , self.import_molecule
             ('Default Molecules', 'lightgray', 'gray'), #, self.load_default_molecules
@@ -147,6 +151,15 @@ class GUI_Manager:
             button = tk.Button(self.title_frame, text=text, bg = bg, activebackground=activebg)
             button.grid(row = 0, column= column)
             self.title_frame_buttons[text] = button
+            self.tf_nextCol += 1
+
+        # Create title frame toolbar
+        toolbar_frame = tk.Frame(self.title_frame)
+        toolbar_frame.grid(row=0, column=self.tf_nextCol, sticky="nsew")  # Place the frame in row 0, column 9
+        # Create a toolbar and update it
+        toolbar = NavigationToolbar2Tk(self.canvas, toolbar_frame)
+        toolbar.update()
+
 
 
     def addButton(self, frame, **kwargs) -> tk.Button:

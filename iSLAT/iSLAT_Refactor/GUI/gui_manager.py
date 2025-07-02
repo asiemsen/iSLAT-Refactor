@@ -83,7 +83,7 @@ class GUI_Manager:
 
         self.frame_manager = tk.Frame(self.root, bg ="gray")
         self.frame_manager.grid(row = 1, column = 0, sticky='nsew')
-        tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack()
+        tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack(fill = 'x')
         
 
     def initialize_graphs(self) -> None:
@@ -103,6 +103,8 @@ class GUI_Manager:
         self.ax2.set_xlabel('Wavelength (μm)')
         self.ax2.set_ylabel('Flux density (Jy)')
         self.ax2.set_frame_on (False)
+        self.ax2.set_title('Line inspection plot', fontsize='medium')
+        self.data_line_select, = self.ax2.plot([], [], color=self.foreground, linewidth=1)
 
         # make empty lines for the second plot
         self.ax2.set_title ('Line inspection plot', fontsize='medium')
@@ -113,42 +115,39 @@ class GUI_Manager:
         # adjust the plots to make room for the widgets
         self.fig.subplots_adjust(left=0.06, right=0.97, top=0.97, bottom=0.09)
 
+
     def size_graph(self, ax, xp1, xp2) -> None:
         # Scaling the y-axis based on tallest peak of data
-        range_flux_cnts = app_globals.input_spectrum_data[(app_globals.input_spectrum_data['wave'] > app_globals.xp1) & (app_globals.input_spectrum_data['wave'] < app_globals.xp2)]
+        range_flux_cnts = app_globals.input_spectrum_data[(app_globals.input_spectrum_data['wave'] > xp1) & (app_globals.input_spectrum_data['wave'] < xp2)]
         range_flux_cnts.index = range (len(range_flux_cnts.index))
         fig_height = np.nanmax(range_flux_cnts.flux)
         fig_bottom_height = np.min(range_flux_cnts.flux)
         ax.set_ylim(ymin=fig_bottom_height, ymax=fig_height + (fig_height / 8))
 
+
     def createTitleFrame(self) -> None:
 
-        self.title_frame = tk.Frame(self.root, bg="gray")
+        self.title_frame = tk.Frame(self.root, bg="red")
         self.title_frame.grid(row=0, column=0, columnspan= 2, sticky='ew')
         # tk.Label(self.title_frame, text="Title Frame", bg="gray").pack()
 
-        self.import_button = tk.Button(self.title_frame, text="HITRAN query", bg='lightgray', activebackground='gray') # , command=import_molecule
-        self.import_button.grid(row=0, column=0)
+        buttons_info = [
+            ("HITRAN query", 'lightgray', 'gray'), # , self.import_molecule
+            ('Default Molecules', 'lightgray', 'gray'), #, self.load_default_molecules
+            ('Add Molecule', 'lightgray', 'gray'), # , self.add_molecule
+            ('Save Parameters', 'lightgray', 'gray'), # , self.save_params
+            ('Load Parameters', 'lightgray', 'gray'), # , self.load_params
+            ('Export Models', 'lightgray', 'gray'), # , self.export_models
+            ('Toggle Legend', 'lightgray', 'gray'),
+        ]
 
-        self.defmol_button = tk.Button(self.title_frame, text='Default Molecules', bg='lightgray', activebackground='gray') # , command=lambda: load_defaults_from_file(), width=12, height=1)                    
-        self.defmol_button.grid(row=0, column=1)
+        self.title_frame_buttons = {}
 
-        self.addmol_button = tk.Button(self.title_frame, text='Add Molecule', bg='lightgray', activebackground='gray') # command=lambda: add_molecule_data(), width=12, height=1)                
-        self.addmol_button.grid(row=0, column=2)
+        for column, (text, bg, activebg) in enumerate(buttons_info):
+            button = tk.Button(self.title_frame, text=text, bg = bg, activebackground=activebg)
+            button.grid(row = 0, column= column)
+            self.title_frame_buttons[text] = button
 
-        self.saveparams_button = tk.Button(self.title_frame, text='Save Parameters', bg='lightgray', activebackground='gray') #  command=lambda: saveparams_button_clicked(), width=12, height=1)
-        self.saveparams_button.grid(row=0, column=3)
-
-        self.loadparams_button = tk.Button(self.title_frame, text='Load Parameters', bg='lightgray', activebackground='gray') # command=lambda: load_variables_from_file(file_name), width=12, height=1)                     
-        self.loadparams_button.grid(row=0, column=4)
-
-        self.export_button = tk.Button(self.title_frame, text='Export Models', bg='lightgray',  width=12,
-                           height=1) # command=export_spectrum,
-        self.export_button.grid(row=0, column=5)
-
-        self.xport_button = tk.Button(self.title_frame, text='Export Models', bg='lightgray',  width=12,
-                           height=1) # command=export_spectrum,
-        self.export_button.grid(row=0, column=5)
 
     def addButton(self, frame, **kwargs) -> tk.Button:
         

@@ -115,12 +115,12 @@ window.deiconify()
 
 # create buttons for top of GUI
 nb_of_columns = 10  # to be replaced by the relevant number
-title_frame = tk.Frame(window, bg="gray")
+title_frame = tk.Frame(window)
 title_frame.grid(row=0, column=0, columnspan=nb_of_columns, sticky='ew')
 
 # Create a frame to hold the canvasscroll and both scrollbars
 outer_frame = tk.Frame(window)
-outer_frame.grid(row=title_frame.grid_info ()['row'] + title_frame.grid_info ()['rowspan'], column=0, rowspan=10,
+outer_frame.grid(row=title_frame.grid_info()['row'] + title_frame.grid_info()['rowspan'], column=0, rowspan=10,
                   columnspan=5, sticky="nsew")
 
 # Create a canvasscroll widget
@@ -131,7 +131,7 @@ canvasscroll.grid(row=0, column=0, sticky="nsew")
 vscrollbar = tk.Scrollbar(outer_frame, orient="vertical", command=canvasscroll.yview)
 vscrollbar.grid(row=0, column=1, sticky="ns")
 hscrollbar = tk.Scrollbar(outer_frame, orient="horizontal", command=canvasscroll.xview)
-hscrollbar.grid(row=1, column=0, sticky="ew")
+hscrollbar.grid(row=1, column=0, columnspan= 2, sticky="ew")
 
 # Configure the canvasscroll to use the scrollbars
 canvasscroll.configure(yscrollcommand=vscrollbar.set, xscrollcommand=hscrollbar.set)
@@ -141,7 +141,7 @@ outer_frame.grid_rowconfigure (0, weight=1)
 outer_frame.grid_columnconfigure (0, weight=1)
 
 # Create the frame that will contain your actual content
-molecule_frame = tk.Frame (canvasscroll, borderwidth=2)  # , relief="groove")
+molecule_frame = tk.Frame(canvasscroll, borderwidth=2)  # , relief="groove")
 canvasscroll.create_window ((0, 0), window=molecule_frame, anchor="nw")
 
 # Configure the canvasscroll scroll region
@@ -531,7 +531,7 @@ canvas = FigureCanvasTkAgg (fig, master=window)
 canvas_widget = canvas.get_tk_widget()
 
 # Place the canvas widget in column 9, row 1
-canvas_widget.grid(row=1, column=5, rowspan=100, sticky='nsew')
+canvas_widget.grid(row=1, column=9, rowspan=100, sticky='nsew')
 
 # Allow column 9 and row 1 to expandc
 window.grid_columnconfigure(5, weight=1)

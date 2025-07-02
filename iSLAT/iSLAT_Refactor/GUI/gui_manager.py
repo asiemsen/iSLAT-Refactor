@@ -4,11 +4,13 @@ import numpy as np
 
 from iSLAT_Refactor import app_globals
 from matplotlib.gridspec import GridSpec
+from matplotlib.backends.backend_tkagg import(FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 class GUI_Manager:
 
-    def __init__(self, root) -> None:
+    def __init__(self, window) -> None:
         # for dark mode
+        self.root = window
         self.mode = False 
         self.background = 'white'
         self.foreground = 'black'
@@ -36,7 +38,23 @@ class GUI_Manager:
         self.nb_of_columns = 10  # to be replaced by the relevant number
 
         self.root = tk.Tk()
-        
+
+        self.init_window()
+        self.build_layout()
+        self.initialize_graphs()
+
+         # Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
+        self.canvas = FigureCanvasTkAgg(self.fig, master=self.root)
+        self.canvas_widget = self.canvas.get_tk_widget()
+
+        # Place the canvas widget in column 9, row 1
+        self.canvas_widget.grid(row=1, column=1, rowspan=100, sticky='nsew')
+
+        # Grid resizing
+        self.root.grid_rowconfigure(1, weight=1)
+        self.root.grid_columnconfigure(0, weight=0)  # Frame manager column
+        self.root.grid_columnconfigure(1, weight=1)  # Canvas column
+            
 
     def init_window(self) -> None:
         self.root.withdraw()
@@ -47,7 +65,8 @@ class GUI_Manager:
         self.root.title("iSLAT " + self.iSLAT_version)
 
         self.root.geometry("1200x800")
-        self.root.after(100, self.root.deiconify)
+        self.root.deiconify()
+        # self.root.after(100, self.root.deiconify)
 
     def build_layout(self) -> None:
         plt.rcParams['font.size'] = 10
@@ -56,26 +75,15 @@ class GUI_Manager:
 
         self.gs = GridSpec(nrows=2, ncols=2, width_ratios=[1, 1], height_ratios=[1, 1.5])
 
-        self.fig.subplots_adjust (left=0.06, right=0.97, top=0.97, bottom=0.09)
+        self.fig.subplots_adjust(left=0.06, right=0.97, top=0.97, bottom=0.09)
 
+        self.createTitleFrame()
         # create buttons for top of GUI
-        self.title_frame = tk.Frame(self.root, bg="gray")
-        self.title_frame.grid(row=0, column=0, columnspan= self.nb_of_columns, sticky='ew')
-
-        # Create a frame to hold the canvasscroll and both scrollbars
-        outer_frame = tk.Frame(self.root)
-        outer_frame.grid(row=self.title_frame.grid_info()['row'] + self.title_frame.grid_info()['rowspan'], column=0, rowspan=10,
-                        columnspan=5, sticky="nsew")
         
-        # Create a canvasscroll widget
-        self.canvasscroll = tk.Canvas(outer_frame)
-        self.canvasscroll.grid(row=0, column=0, sticky="nsew")
 
-        # Create vertical and horizontal scrollbar widgets and associate them with the canvasscroll
-        vscrollbar = tk.Scrollbar(self.outer_frame, orient="vertical", command=self.canvasscroll.yview)
-        vscrollbar.grid(row=0, column=1, sticky="ns")
-        hscrollbar = tk.Scrollbar(outer_frame, orient="horizontal", command=self.canvasscroll.xview)
-        hscrollbar.grid(row=1, column=0, sticky="ew")
+        self.frame_manager = tk.Frame(self.root, bg ="gray")
+        self.frame_manager.grid(row = 1, column = 0, sticky='nsew')
+        tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack()
         
 
     def initialize_graphs(self) -> None:
@@ -102,6 +110,9 @@ class GUI_Manager:
 
         self.ax3.set_frame_on (False)
 
+        # adjust the plots to make room for the widgets
+        self.fig.subplots_adjust(left=0.06, right=0.97, top=0.97, bottom=0.09)
+
     def size_graph(self, ax, xp1, xp2) -> None:
         # Scaling the y-axis based on tallest peak of data
         range_flux_cnts = app_globals.input_spectrum_data[(app_globals.input_spectrum_data['wave'] > app_globals.xp1) & (app_globals.input_spectrum_data['wave'] < app_globals.xp2)]
@@ -110,10 +121,43 @@ class GUI_Manager:
         fig_bottom_height = np.min(range_flux_cnts.flux)
         ax.set_ylim(ymin=fig_bottom_height, ymax=fig_height + (fig_height / 8))
 
+    def createTitleFrame(self) -> None:
+
+        self.title_frame = tk.Frame(self.root, bg="gray")
+        self.title_frame.grid(row=0, column=0, columnspan= 2, sticky='ew')
+        # tk.Label(self.title_frame, text="Title Frame", bg="gray").pack()
+
+        self.import_button = tk.Button(self.title_frame, text="HITRAN query", bg='lightgray', activebackground='gray') # , command=import_molecule
+        self.import_button.grid(row=0, column=0)
+
+        self.defmol_button = tk.Button(self.title_frame, text='Default Molecules', bg='lightgray', activebackground='gray') # , command=lambda: load_defaults_from_file(), width=12, height=1)                    
+        self.defmol_button.grid(row=0, column=1)
+
+        self.addmol_button = tk.Button(self.title_frame, text='Add Molecule', bg='lightgray', activebackground='gray') # command=lambda: add_molecule_data(), width=12, height=1)                
+        self.addmol_button.grid(row=0, column=2)
+
+        self.saveparams_button = tk.Button(self.title_frame, text='Save Parameters', bg='lightgray', activebackground='gray') #  command=lambda: saveparams_button_clicked(), width=12, height=1)
+        self.saveparams_button.grid(row=0, column=3)
+
+        self.loadparams_button = tk.Button(self.title_frame, text='Load Parameters', bg='lightgray', activebackground='gray') # command=lambda: load_variables_from_file(file_name), width=12, height=1)                     
+        self.loadparams_button.grid(row=0, column=4)
+
+        self.export_button = tk.Button(self.title_frame, text='Export Models', bg='lightgray',  width=12,
+                           height=1) # command=export_spectrum,
+        self.export_button.grid(row=0, column=5)
+
+        self.xport_button = tk.Button(self.title_frame, text='Export Models', bg='lightgray',  width=12,
+                           height=1) # command=export_spectrum,
+        self.export_button.grid(row=0, column=5)
+
+    def addButton(self, frame, **kwargs) -> tk.Button:
+        
+        button = tk.Button(frame, **kwargs)
+
 
         
-        
-        
+
+
 
 
 

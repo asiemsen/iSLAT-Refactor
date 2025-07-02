@@ -247,7 +247,7 @@ for row, (mol_name, mol_filepath, mol_label) in enumerate(molecules_data):
 
 
 
-files_frame = tk.Frame(window, borderwidth=2, relief="groove")
+files_frame = tk.Frame(window, borderwidth=2, relief="groove", bg='red')
 files_frame.grid(row=outer_frame.grid_info()['row'] + outer_frame.grid_info()['rowspan'], column=0, rowspan=7,
                   columnspan=5, sticky="nsew")
 
@@ -478,42 +478,7 @@ deblender_button = tk.Button(functions_frame, text='Line De-blender', bg='lightg
                            
 deblender_button.grid(row=3, column=1)
 
-# Create a frame for the Text widget
-text_frame = tk.Frame(window)
-text_frame.grid(row=functions_frame.grid_info()['row'] + functions_frame.grid_info()['rowspan'], column=0,
-                 columnspan=5, sticky='nsew')
-
-# Create a Text widget within the frame
-data_field = tk.Text(text_frame, wrap="word", height=13, width=24)
-data_field.pack(fill="both", expand=True)
-
-# Storing the callback for on_xlims_change()
-# ax1.callbacks.connect('xlim_changed', on_xlims_change)S
-
-
-
-# Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
-canvas = FigureCanvasTkAgg(fig, master=window)
-canvas_widget = canvas.get_tk_widget()
-
-# Place the canvas widget in column 9, row 1
-canvas_widget.grid(row=1, column=5, rowspan=100, sticky='nsew')
-
-# Allow column 9 and row 1 to expandc
-window.grid_columnconfigure(5, weight=1)
-window.grid_rowconfigure(100, weight=1)
-
-# Create a frame for the toolbar inside the title_frame
-toolbar_frame = tk.Frame(title_frame)
-toolbar_frame.grid(row=0, column=9, columnspan=2, sticky="nsew")  # Place the frame in row 0, column 9
-# Create a toolbar and update it
-toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
-toolbar.update()
-
-title_frame.grid_columnconfigure(9, weight=1)
-
-plt.interactive(False)
-
+# DELETE ----------------------
 # Create a frame for the Text widget
 text_frame = tk.Frame(window)
 text_frame.grid(row=functions_frame.grid_info()['row'] + functions_frame.grid_info()['rowspan'], column=0,
@@ -526,6 +491,8 @@ data_field.pack(fill="both", expand=True)
 # Storing the callback for on_xlims_change()
 # ax1.callbacks.connect('xlim_changed', on_xlims_change)
 
+
+
 # Create a FigureCanvasTkAgg widget to embed the figure in the tkinter window
 canvas = FigureCanvasTkAgg(fig, master=window)
 canvas_widget = canvas.get_tk_widget()
@@ -543,9 +510,6 @@ toolbar_frame.grid(row=0, column=9, columnspan=2, sticky="nsew")  # Place the fr
 # Create a toolbar and update it
 toolbar = NavigationToolbar2Tk(canvas, toolbar_frame)
 toolbar.update()
-
-
-
 
 title_frame.grid_columnconfigure(9, weight=1)
 
@@ -559,24 +523,6 @@ linefile_button.grid(row=3, column=5)
 
 linesave_button = tk.Button(files_frame, text='Define File', ) # command=savelinefile
 linesave_button.grid(row=5, column=5, pady=(0, 10))
-
-
-#FROM UPDATE() FUNCTION
-# for mol_name, mol_filepath, mol_label in molecules_data:
-#         molecule_name_lower = mol_name.lower()
-#         vis_status_var = globals()[f"{molecule_name_lower}_vis"]
-#         line_var = globals()[f"{molecule_name_lower}_line"]
-#         # lambdas_var = globals()[f"lambdas_{molecule_name_lower}"]
-#         # fluxes_var = globals()[f"fluxes_{molecule_name_lower}"]
-
-#         if vis_status_var:
-#             line_var.set_visible(True)
-#         else:
-#             line_var.set_visible(False)
-#             label = line_var.get_label()
-#             if label:
-#                 ax1.legend().get_legend_handler_map().pop(label, None)
-#                 line_var.set_label("_nolegend_")
 
 
 

@@ -247,7 +247,7 @@ for row, (mol_name, mol_filepath, mol_label) in enumerate(molecules_data):
 
 
 
-files_frame = tk.Frame(window, borderwidth=2, relief="groove", bg='red')
+files_frame = tk.Frame(window, borderwidth=2, relief="groove", bg='grey')
 files_frame.grid(row=outer_frame.grid_info()['row'] + outer_frame.grid_info()['rowspan'], column=0, rowspan=7,
                   columnspan=5, sticky="nsew")
 

@@ -14,41 +14,27 @@ class GUI_Manager:
         self.mode = False 
         self.background = 'white'
         self.foreground = 'black'
-
         self.iSLAT_version = "Refactor Build"
-
         self.num_rows = 9
-
         # Calculate the height and width of each row
         self.row_height = 0.035
         self.row_width = 0.19
-
         # Calculate the total height of all rows
         self.total_height = self.row_height * self.num_rows
-
         # Calculate the starting y-position for the first row within the control_border
         self.start_y = 0.52 + (0.45 - self.total_height) / 2  # Center vertically
-
         # Define the column labels
         self.column_labels = ['Molecule', 'Temp.', 'Radius', 'Col. Dens', 'On', 'Del.', 'Color']
-
         # Create a dictionary to store the visibility buttons
         self.vis_buttons_dict = {}
-
         self.nb_of_columns = 10  # to be replaced by the relevant number
 
         self.root = tk.Tk()
-
-
-        
 
         self.init_window()
         self.build_layout()
         self.initialize_graphs()
         
-
-        
-
         # Grid resizing
         self.root.grid_rowconfigure(1, weight=1)
         self.root.grid_columnconfigure(0, weight=0)  # Frame manager column
@@ -159,6 +145,8 @@ class GUI_Manager:
         # Create a toolbar and update it
         toolbar = NavigationToolbar2Tk(self.canvas, toolbar_frame)
         toolbar.update()
+        self.title_frame.grid_columnconfigure(self.tf_nextCol, weight=1)
+        self.tf_nextCol += 1
 
 
 

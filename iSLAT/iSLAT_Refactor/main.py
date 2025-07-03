@@ -46,7 +46,7 @@ molecules_data = read_from_user_csv()
 
 moleculeManager = MoleculeManager(molecules_data)
 
-guiManager = GUI_Manager(window)
+guiManager = GUI_Manager(window, moleculeManager)
 
 
 
@@ -99,68 +99,68 @@ guiManager = GUI_Manager(window)
 # Loop to create rows of input fields and buttons for each chemical
 # nextrow = 1  # Start with row 1
 # for row, (mol_name, mol_filepath, mol_label) in enumerate(molecules_data):
-    # # global nextrow
-    # y_row = start_y + row_height * (num_rows - row - 1)
-    # row = row + 1
-    # # Get the initial values for the current chemical from the dictionary
-    # # params = app_globals.initial_values[mol_name.lower()]
-    # params = moleculeManager.moleculeDictionary[mol_name.lower()]
-    # scale_exponent = params["scale_exponent"]
-    # scale_number = params["scale_number"]
-    # t_kin = params["t_kin"]
-    # radius_init = params["radius"]
-    # n_mol_init = params["n_mol"]
+#     # global nextrow
+#     y_row = start_y + row_height * (num_rows - row - 1)
+#     row = row + 1
+#     # Get the initial values for the current chemical from the dictionary
+#     # params = app_globals.initial_values[mol_name.lower()]
+#     params = moleculeManager.moleculeDictionary[mol_name.lower()]
+#     scale_exponent = params["scale_exponent"]
+#     scale_number = params["scale_number"]
+#     t_kin = params["t_kin"]
+#     radius_init = params["radius"]
+#     n_mol_init = params["n_mol"]
 
-    # # Row label
-    # exec(f"{mol_name.lower()}_rowl_field = tk.Entry(molecule_frame, width=6)")
-    # eval(f"{mol_name.lower()}_rowl_field").grid(row=row, column=0)
-    # eval(f"{mol_name.lower()}_rowl_field").insert(0, f"{mol_name}")
+#     # Row label
+#     exec(f"{mol_name.lower()}_rowl_field = tk.Entry(molecule_frame, width=6)")
+#     eval(f"{mol_name.lower()}_rowl_field").grid(row=row, column=0)
+#     eval(f"{mol_name.lower()}_rowl_field").insert(0, f"{mol_name}")
 
-    # # Temperature input field
-    # exec(f"{mol_name.lower()}_temp_field = tk.Entry(molecule_frame, width=4)")
-    # eval(f"{mol_name.lower()}_temp_field").grid(row=row, column=1)
-    # eval(f"{mol_name.lower()}_temp_field").insert(0, f"{t_kin}")
-    # # eval(f"{mol_name.lower()}_temp_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
-    # #     f"{mol_name.lower()}_temp_field"]: submit_temp(ce.get(), mn))
+#     # Temperature input field
+#     exec(f"{mol_name.lower()}_temp_field = tk.Entry(molecule_frame, width=4)")
+#     eval(f"{mol_name.lower()}_temp_field").grid(row=row, column=1)
+#     eval(f"{mol_name.lower()}_temp_field").insert(0, f"{t_kin}")
+#     # eval(f"{mol_name.lower()}_temp_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+#     #     f"{mol_name.lower()}_temp_field"]: submit_temp(ce.get(), mn))
 
-    # CreateToolTip(eval(f"{mol_name.lower()}_temp_field"), text='Excitation temperature\n'
-    #                                                               'units: K')
+#     CreateToolTip(eval(f"{mol_name.lower()}_temp_field"), text='Excitation temperature\n'
+#                                                                   'units: K')
 
-    # # Radius input field
-    # exec(f"{mol_name.lower()}_rad_field = tk.Entry(molecule_frame, width=4)")
-    # eval(f"{mol_name.lower()}_rad_field").grid(row=row, column=2)
-    # eval(f"{mol_name.lower()}_rad_field").insert(0, f"{radius_init}")
-    # # eval(f"{mol_name.lower()}_rad_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
-    # #     f"{mol_name.lower()}_rad_field"]: submit_rad(ce.get(), mn))
+#     # Radius input field
+#     exec(f"{mol_name.lower()}_rad_field = tk.Entry(molecule_frame, width=4)")
+#     eval(f"{mol_name.lower()}_rad_field").grid(row=row, column=2)
+#     eval(f"{mol_name.lower()}_rad_field").insert(0, f"{radius_init}")
+#     # eval(f"{mol_name.lower()}_rad_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+#     #     f"{mol_name.lower()}_rad_field"]: submit_rad(ce.get(), mn))
 
-    # CreateToolTip(eval(f"{mol_name.lower()}_rad_field"), text='Equivalent radius\n'
-    #                                                              'units: au')
+#     CreateToolTip(eval(f"{mol_name.lower()}_rad_field"), text='Equivalent radius\n'
+#                                                                  'units: au')
 
-    # # Column Density input field
-    # exec(f"{mol_name.lower()}_dens_field = tk.Entry(molecule_frame, width=6)")
-    # eval(f"{mol_name.lower()}_dens_field").grid(row=row, column=3)
-    # eval(f"{mol_name.lower()}_dens_field").insert(0, f"{n_mol_init:.{1}e}")
-    # # eval(f"{mol_name.lower()}_dens_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
-    # #     f"{mol_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
+#     # Column Density input field
+#     exec(f"{mol_name.lower()}_dens_field = tk.Entry(molecule_frame, width=6)")
+#     eval(f"{mol_name.lower()}_dens_field").grid(row=row, column=3)
+#     eval(f"{mol_name.lower()}_dens_field").insert(0, f"{n_mol_init:.{1}e}")
+#     # eval(f"{mol_name.lower()}_dens_field").bind("<Return>", lambda event, mn=mol_name.lower(), ce=globals()[
+#     #     f"{mol_name.lower()}_dens_field"]: submit_col(ce.get(), mn))
 
-    # CreateToolTip(eval(f"{mol_name.lower()}_dens_field"), text='Column density\n'
-    #                                                               'units: cm^(-2)')
+#     CreateToolTip(eval(f"{mol_name.lower()}_dens_field"), text='Column density\n'
+#                                                                   'units: cm^(-2)')
 
-    # Visibility Checkbutton
-    # if mol_name.lower() == 'h2o':
-    #     exec(f"{mol_name.lower()}_vis_status = tk.BooleanVar()")
-    #     exec(f"{mol_name.lower()}_vis_status.set(True)")  # Set the initial state
-    #     exec(
-    #         f"{mol_name.lower()}_vis_checkbutton = tk.Checkbutton(molecule_frame, text='', variable={mol_name.lower()}_vis_status, onvalue=True, offvalue=False, command=lambda mn=mol_name.lower(): moleculeManager.toggle_visible(mn))")
-    #     exec(f"{mol_name.lower()}_vis_checkbutton.select()")
-    # else:
-    #     globals()[f"{mol_name.lower()}_vis_status"] = tk.BooleanVar()
-    #     exec(
-    #         f"{mol_name.lower()}_vis_checkbutton = tk.Checkbutton(molecule_frame, text='', variable={mol_name.lower()}_vis_status, onvalue=True, offvalue=False, command=lambda mn=mol_name.lower(): moleculeManager.toggle_visible(mn))")
-    #     globals()[f"{mol_name.lower()}_vis_status"].set(False)  # Set the initial state
+#     # Visibility Checkbutton
+#     if mol_name.lower() == 'h2o':
+#         exec(f"{mol_name.lower()}_vis_status = tk.BooleanVar()")
+#         exec(f"{mol_name.lower()}_vis_status.set(True)")  # Set the initial state
+#         exec(
+#             f"{mol_name.lower()}_vis_checkbutton = tk.Checkbutton(molecule_frame, text='', variable={mol_name.lower()}_vis_status, onvalue=True, offvalue=False, command=lambda mn=mol_name.lower(): moleculeManager.toggle_visible(mn))")
+#         exec(f"{mol_name.lower()}_vis_checkbutton.select()")
+#     else:
+#         globals()[f"{mol_name.lower()}_vis_status"] = tk.BooleanVar()
+#         exec(
+#             f"{mol_name.lower()}_vis_checkbutton = tk.Checkbutton(molecule_frame, text='', variable={mol_name.lower()}_vis_status, onvalue=True, offvalue=False, command=lambda mn=mol_name.lower(): moleculeManager.toggle_visible(mn))")
+#         globals()[f"{mol_name.lower()}_vis_status"].set(False)  # Set the initial state
 
 
-    # eval(f"{mol_name.lower()}_vis_checkbutton").grid(row=row, column=4)
+#     eval(f"{mol_name.lower()}_vis_checkbutton").grid(row=row, column=4)
 
 #     CreateToolTip(eval(f"{mol_name.lower()}_vis_checkbutton"), text='Turn on/off this\n'
 #                                                                        'model in the plot')

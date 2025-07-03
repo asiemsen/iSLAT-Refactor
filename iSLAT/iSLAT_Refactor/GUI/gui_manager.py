@@ -6,10 +6,13 @@ from iSLAT_Refactor import app_globals
 from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import(FigureCanvasTkAgg, NavigationToolbar2Tk)
 
+from .Frames.molecule_frame import MoleculeFrame
+
 class GUI_Manager:
 
-    def __init__(self, window) -> None:
+    def __init__(self, window, moleculeManager) -> None:
         # for dark mode
+        self.moleculeManager = moleculeManager
         self.root = window
         self.mode = False 
         self.background = 'white'
@@ -71,7 +74,16 @@ class GUI_Manager:
         # create buttons for top of GUI
         self.frame_manager = tk.Frame(self.root, bg ="gray")
         self.frame_manager.grid(row = 1, column = 0, sticky='nsew')
-        tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack(fill = 'x')
+        # tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack(fill = 'x')
+
+        self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self)
+        self.molecule_frame.grid(row=0, column=0, sticky="ew")
+
+        self.frame_manager.grid_rowconfigure(0, weight=1)
+        self.frame_manager.grid_columnconfigure(0, weight=1)
+
+
+
         
 
     def initialize_graphs(self) -> None:

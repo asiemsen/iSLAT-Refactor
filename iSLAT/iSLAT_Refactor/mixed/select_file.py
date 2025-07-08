@@ -20,6 +20,7 @@ def selectfileinit():
             print(' ')
             print("Selected file:", app_globals.file_path)
             app_globals.file_name = os.path.basename(app_globals.file_path)
+            print("file_name: ", app_globals.file_name)
             # code to process each file
             app_globals.input_spectrum_data = pd.read_csv(filepath_or_buffer=app_globals.file_path, sep=',')
             app_globals.wave_data = np.array(app_globals.input_spectrum_data['wave'])

@@ -7,6 +7,7 @@ from matplotlib.gridspec import GridSpec
 from matplotlib.backends.backend_tkagg import(FigureCanvasTkAgg, NavigationToolbar2Tk)
 
 from .Frames.molecule_frame import MoleculeFrame
+from .Frames.files_frame import FilesFrame
 
 class GUI_Manager:
 
@@ -30,7 +31,6 @@ class GUI_Manager:
         self.column_labels = ['Molecule', 'Temp.', 'Radius', 'Col. Dens', 'On', 'Del.', 'Color']
         # Create a dictionary to store the visibility buttons
         self.vis_buttons_dict = {}
-        self.nb_of_columns = 10  # to be replaced by the relevant number
 
         self.root = tk.Tk()
 
@@ -72,16 +72,18 @@ class GUI_Manager:
         self.createTitleFrame()
 
         # create buttons for top of GUI
-        self.frame_manager = tk.Frame(self.root, bg ="gray")
+        self.frame_manager = tk.Frame(self.root)
         self.frame_manager.grid(row = 1, column = 0, sticky='nsew')
-        # tk.Label(self.frame_manager, text = "Parent Frame", bg= "lightgray").pack(fill = 'x')
+        self.frame_manager.grid_columnconfigure(0, weight=0)
 
         self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self)
-        self.molecule_frame.grid(row=0, column=0, sticky="ew")
-
+        self.molecule_frame.grid(row=0, column=0, sticky = 'nsew')
         self.frame_manager.grid_rowconfigure(0, weight=1)
-        self.frame_manager.grid_columnconfigure(0, weight=1)
+        
 
+        self.files_frame = FilesFrame(parent=self.frame_manager, controller= self)
+        self.files_frame.grid(row=1, column=0, sticky='nsew')
+        self.frame_manager.grid_rowconfigure(1, weight=1)
 
 
         
@@ -102,8 +104,8 @@ class GUI_Manager:
 
         self.ax2.set_xlabel('Wavelength (μm)')
         self.ax2.set_ylabel('Flux density (Jy)')
-        self.ax2.set_frame_on (False)
-        self.ax2.set_title('Line inspection plot', fontsize='medium')
+        self.ax2.set_frame_on(False)
+        # self.ax2.set_title('Line inspection plot', fontsize='medium')
         self.data_line_select, = self.ax2.plot([], [], color=self.foreground, linewidth=1)
 
         # make empty lines for the second plot

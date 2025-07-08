@@ -35,12 +35,6 @@ class MoleculeFrame(ToolFrame):
         
         self.createInputFields(self.controller.moleculeManager.moleculeDictionary)
 
-
-
-        
-
-
-
         
     def createInputFields(self, moleculeDictionary):
 
@@ -61,7 +55,7 @@ class MoleculeFrame(ToolFrame):
             # row label 
             inFields["rowl"] = tk.Entry(self.data_frame, width=6)
             inFields["rowl"].grid(row = row, column = 0)
-            inFields["rowl"].insert(0, mol_name)
+            inFields["rowl"].insert(0, mol_name.upper())
 
             #Temperature Input Field
             inFields["temp"] = tk.Entry(self.data_frame, width =4)

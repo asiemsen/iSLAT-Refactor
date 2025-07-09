@@ -44,11 +44,11 @@ def selectfileinit():
             # svd_line_file = f'savedlines-{dateandtime}.csv'
 
         # Ask the user to select the mode (light or dark)
-        mode_dialog = tk.messagebox.askquestion("Select Mode", "Would you like to start iSLAT in Dark Mode?")
+        # mode_dialog = tk.messagebox.askquestion("Select Mode", "Would you like to start iSLAT in Dark Mode?")
 
-        if mode_dialog == 'yes':
-            app_globals.mode= True  # Dark mode
-        else:
-            app_globals.mode= False  # Light mode
+        # if mode_dialog == 'yes':
+        #     app_globals.mode= True  # Dark mode
+        # else:
+        #     app_globals.mode= False  # Light mode
     else:
         print("No files selected.")

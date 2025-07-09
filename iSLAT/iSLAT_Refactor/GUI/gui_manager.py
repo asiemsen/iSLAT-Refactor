@@ -8,6 +8,7 @@ from matplotlib.backends.backend_tkagg import(FigureCanvasTkAgg, NavigationToolb
 
 from .Frames.molecule_frame import MoleculeFrame
 from .Frames.files_frame import FilesFrame
+from .Frames.plotparams_frame import PlotParamsFrame
 
 class GUI_Manager:
 
@@ -16,7 +17,7 @@ class GUI_Manager:
         self.moleculeManager = moleculeManager
         self.root = window
         self.mode = False 
-        self.background = 'white'
+        self.BG = 'lightgray'
         self.foreground = 'black'
         self.iSLAT_version = "Refactor Build"
         self.num_rows = 9
@@ -32,7 +33,9 @@ class GUI_Manager:
         # Create a dictionary to store the visibility buttons
         self.vis_buttons_dict = {}
 
-        self.root = tk.Tk()
+        # self.root = tk.Tk()
+
+
 
         self.init_window()
         self.build_layout()
@@ -72,18 +75,24 @@ class GUI_Manager:
         self.createTitleFrame()
 
         # create buttons for top of GUI
-        self.frame_manager = tk.Frame(self.root)
+        self.frame_manager = tk.Frame(self.root, relief='groove', bg='red')
         self.frame_manager.grid(row = 1, column = 0, sticky='nsew')
         self.frame_manager.grid_columnconfigure(0, weight=0)
 
-        self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self)
-        self.molecule_frame.grid(row=0, column=0, sticky = 'nsew')
-        self.frame_manager.grid_rowconfigure(0, weight=1)
+        # Add molecule frmae
+        self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self, relief='groove')
+        self.molecule_frame.grid(row=0, column=0, sticky = 'new')
+        self.frame_manager.grid_rowconfigure(0, weight=0)
         
+        # Add files frame
+        self.files_frame = FilesFrame(parent=self.frame_manager, controller= self, relief='groove')
+        self.files_frame.grid(row=1, column=0, sticky='new')
+        self.frame_manager.grid_rowconfigure(1, weight=0)
 
-        self.files_frame = FilesFrame(parent=self.frame_manager, controller= self)
-        self.files_frame.grid(row=1, column=0, sticky='nsew')
-        self.frame_manager.grid_rowconfigure(1, weight=1)
+        # Add plot params frame
+        self.plotparams_frame = PlotParamsFrame(parent=self.frame_manager, controller=self, relief='groove')
+        self.plotparams_frame.grid(row=2, column=0, sticky='new')
+        self.plotparams_frame.grid_rowconfigure(1, weight=0)
 
 
         
@@ -131,7 +140,7 @@ class GUI_Manager:
 
         self.tf_nextCol = 0
 
-        self.title_frame = tk.Frame(self.root, bg="gray")
+        self.title_frame = tk.Frame(self.root, bg="lightgrey")
         self.title_frame.grid(row=0, column=0, columnspan= 2, sticky='ew')
 
         # Create title frame buttons

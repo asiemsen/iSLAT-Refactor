@@ -32,6 +32,7 @@ background = 'white'
 foreground = 'black'
 
 window = tk.Tk()
+
 window.withdraw()
 window.call('wm', 'attributes', '.', '-topmost', True)
 window.protocol("WM_DELETE_WINDOW", window.quit)

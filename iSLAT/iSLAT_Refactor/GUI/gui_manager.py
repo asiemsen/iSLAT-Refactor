@@ -16,6 +16,8 @@ from .Frames.text_frame import TextFrame
 class GUI_Manager:
 
     def __init__(self, window, moleculeManager) -> None:
+        self.molecules_frame = None
+        self.ax1 = None
         # for dark mode
         self.moleculeManager = moleculeManager
         self.root = window
@@ -43,6 +45,9 @@ class GUI_Manager:
         self.init_window()
         self.build_layout()
         self.initialize_graphs()
+
+
+        self.ax1.legend(loc='upper right')
         
         # Grid resizing
         self.root.grid_rowconfigure(1, weight=1)
@@ -81,9 +86,11 @@ class GUI_Manager:
         self.frame_manager.grid_columnconfigure(0, weight=0)
 
         # Add molecule frmae
-        self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
-        self.molecule_frame.grid(row=0, column=0, sticky = 'new')
+        molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
+        molecule_frame.grid(row=0, column=0, sticky = 'new')
         self.frame_manager.grid_rowconfigure(0, weight=0)
+
+        self.molecules_frame = molecule_frame
         
         # Add files frame
         self.files_frame = FilesFrame(parent=self.frame_manager, controller= self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
@@ -108,29 +115,25 @@ class GUI_Manager:
         
 
     def initialize_graphs(self) -> None:
-        self.ax1 = self.fig.add_subplot(self.gs[0, :])
+        ax1 = self.fig.add_subplot(self.gs[0, :])
         self.ax2 = self.fig.add_subplot(self.gs[1, 0])
         self.ax3 = self.fig.add_subplot(self.gs[1, 1])
 
-        self.ax1.set_ylabel('Flux density (Jy)')
-        self.ax1.set_xlabel('Wavelength (μm)')
-        self.ax1.set_xlim(xmin=app_globals.xp1, xmax=app_globals.xp2)
-        self.data_line, = self.ax1.plot(app_globals.wave_data, app_globals.flux_data, color=self.foreground, linewidth=1)
+        ax1.set_ylabel('Flux density (Jy)')
+        ax1.set_xlabel('Wavelength (μm)')
+        ax1.set_xlim(xmin=app_globals.xp1, xmax=app_globals.xp2)
+        self.data_line, = ax1.plot(app_globals.wave_data, app_globals.flux_data, color=self.foreground, linewidth=1)
         self.data_line.set_label('Data')
-        self.ax1.set_prop_cycle (color=['dodgerblue', 'darkorange', 'orangered', 'limegreen', 'mediumorchid', 'magenta',
-                               'hotpink', 'cyan', 'gold', 'turquoise', 'chocolate', 'royalblue', 'sienna', 'lime',
-                               'darkviolet', 'blue'])
-        self.ax1.legend()
+        ax1.set_prop_cycle(color=app_globals.COLOR_CYCLE)
+
+        self.ax1 = ax1
         
-
-
+        
         self.size_graph(self.ax1, app_globals.xp1, app_globals.xp2)
         
-
         self.ax2.set_xlabel('Wavelength (μm)')
         self.ax2.set_ylabel('Flux density (Jy)')
         self.ax2.set_frame_on(False)
-
 
         # make empty lines for the second plot
         self.data_line_select, = self.ax2.plot([], [], color=self.foreground, linewidth=1)

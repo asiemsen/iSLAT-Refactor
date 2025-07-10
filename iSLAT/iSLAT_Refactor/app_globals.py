@@ -68,6 +68,10 @@ INITIAL_PARAMETERS = {
     }
 }
 
+COLOR_CYCLE = ['dodgerblue', 'darkorange', 'orangered', 'limegreen', 'mediumorchid', 'magenta',
+                               'hotpink', 'cyan', 'gold', 'turquoise', 'chocolate', 'royalblue', 'sienna', 'lime',
+                               'darkviolet', 'blue']
+
 # Set-up default input parameters for model generation
 min_lamb = 4.5
 max_lamb = 28.

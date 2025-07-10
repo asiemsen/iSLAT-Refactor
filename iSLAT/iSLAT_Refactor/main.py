@@ -484,6 +484,7 @@ plt.interactive(False)
 #         print('Line object or color attribute not found for:', mol_name)
 
 moleculeManager.createLines(molecules_data, guiManager.ax1)
+guiManager.molecules_frame.configureButton(moleculeManager.moleculeDictionary, guiManager.ax1)
 
 
 

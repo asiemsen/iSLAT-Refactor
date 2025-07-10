@@ -73,24 +73,33 @@ class MoleculeFrame(ToolFrame):
             inFields["density"].insert(0, f"{n_mol_init:.{1}e}")
 
             # Visibility Checkbutton
-            inFields["vis button"] = tk.Checkbutton(self.data_frame, 
+            inFields["vis_button"] = tk.Checkbutton(self.data_frame, 
                                                         text='', 
-                                                        command=lambda mn = mol_name:self.controller.moleculeManager.toggle_visible(mn))
+                                                        )
             if mol_name == 'h2o':
-                inFields["vis button"].select()
+                inFields["vis_button"].select()
 
-            inFields["vis button"].grid(row=row, column=4)
+            inFields["vis_button"].grid(row=row, column=4)
 
             # Delete Button
             inFields["delete"] = tk.Button(self.data_frame, text="X")
             inFields["delete"].grid(row=row, column=5)
 
             # Color Button 
-            inFields["color"] = tk.Button(self.data_frame, text=" ")
+            inFields["color"] = tk.Button(self.data_frame, text=" ", background=self.controller.moleculeManager.moleculeDictionary[mol_name]["color"])
             inFields["color"].grid(row=row, column=6)
                 
     # # Configure the canvasscroll scroll region
     def on_frame_configure(self, event):
         self.canvasscroll.configure(scrollregion=self.canvasscroll.bbox("all"))
+
+    def update_button_colors(self, moleculeDictionary):
+        for molName in moleculeDictionary:
+            self.inputFields[molName]["color"].config(bg = moleculeDictionary[molName]["color"])
+
+    def configureButton(self, moleculeDictionary, plot1):
+        for molName in moleculeDictionary:
+            self.inputFields[molName]["vis_button"].configure(command=lambda mn = molName, ax1 = plot1:self.controller.moleculeManager.toggle_visible(mn, ax1))
+
 
 

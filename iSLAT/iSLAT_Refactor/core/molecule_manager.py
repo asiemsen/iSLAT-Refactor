@@ -12,6 +12,7 @@ class MoleculeManager:
 
     def __init__(self, molecules_data) -> None:
 
+        self.propNum = 0
         self.moleculeDictionary = {}
 
         for mol_name, mol_filepath, mol_label in molecules_data:
@@ -43,6 +44,7 @@ class MoleculeManager:
             mol["t_kin"] = t_kin   # t_kin vs t?
             mol["radius"] = radius_init
             mol["n_mol"] = n_mol_init # what is n_mol (column density?)
+            mol["label"] = mol_label
 
             # Intensity create/calc
             mol["intensity"] = Intensity(mol["data"])
@@ -62,34 +64,54 @@ class MoleculeManager:
             mol["lambdas"] = mol["spectrum"].lamgrid
 
 
+            prop_cycle = app_globals.COLOR_CYCLE
+            color = prop_cycle[self.propNum]
+            mol["color"] = color
+        
+
             print (f"Molecule Initialized: {mol_name}")
+
+            self.propNum += 1
 
 
     def createLines(self, molecules_data, ax1):
         for mol_name, mol_filepath, mol_label in molecules_data:
+            
 
             molName = mol_name.lower()
             mol = self.moleculeDictionary[molName]
+
             
             if mol["is_visible"]:
                 mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha = 0.8, linewidth = 1.0, ls = '--')
+                mol["line_plot"].set_label(mol_label)
             else:
                 mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha=0.0, linewidth=1.0, ls = '--')
+            ax1.legend(loc='upper right')
 
 
-    def toggle_visible(self, molName):
+
+
+
+    def toggle_visible(self, molName, ax1):
 
         molName = molName.lower()
         mol = self.moleculeDictionary[molName]
         mol["is_visible"] = not mol["is_visible"]
 
+
+
         if mol["is_visible"]:
             mol["line_plot"].set_alpha(0.8)
+            mol["line_plot"].set_label(mol["label"])
+
             # change alpha to 0.8
         else:
             mol["line_plot"].set_alpha(0.0)
+            mol["line_plot"].set_label(None)
             # change alpha to 0.0
-
+        ax1.legend(loc='upper right')
+        
         plt.draw()
 
 

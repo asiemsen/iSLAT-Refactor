@@ -9,6 +9,9 @@ from matplotlib.backends.backend_tkagg import(FigureCanvasTkAgg, NavigationToolb
 from .Frames.molecule_frame import MoleculeFrame
 from .Frames.files_frame import FilesFrame
 from .Frames.plotparams_frame import PlotParamsFrame
+from .Frames.functions_frame import FunctionsFrame
+from .Frames.text_frame import TextFrame
+
 
 class GUI_Manager:
 
@@ -69,9 +72,7 @@ class GUI_Manager:
         self.canvas_widget.grid(row=1, column=1, sticky='nsew')
 
         self.gs = GridSpec(nrows=2, ncols=2, width_ratios=[1, 1], height_ratios=[1, 1.5])
-
-        self.fig.subplots_adjust(left=0.06, right=0.97, top=0.97, bottom=0.09)
-
+        
         self.createTitleFrame()
 
         # create buttons for top of GUI
@@ -80,33 +81,48 @@ class GUI_Manager:
         self.frame_manager.grid_columnconfigure(0, weight=0)
 
         # Add molecule frmae
-        self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self, relief='groove')
+        self.molecule_frame = MoleculeFrame(parent=self.frame_manager, controller = self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
         self.molecule_frame.grid(row=0, column=0, sticky = 'new')
         self.frame_manager.grid_rowconfigure(0, weight=0)
         
         # Add files frame
-        self.files_frame = FilesFrame(parent=self.frame_manager, controller= self, relief='groove')
+        self.files_frame = FilesFrame(parent=self.frame_manager, controller= self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
         self.files_frame.grid(row=1, column=0, sticky='new')
         self.frame_manager.grid_rowconfigure(1, weight=0)
 
         # Add plot params frame
-        self.plotparams_frame = PlotParamsFrame(parent=self.frame_manager, controller=self, relief='groove')
+        self.plotparams_frame = PlotParamsFrame(parent=self.frame_manager, controller=self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
         self.plotparams_frame.grid(row=2, column=0, sticky='new')
-        self.plotparams_frame.grid_rowconfigure(1, weight=0)
+        self.frame_manager.grid_rowconfigure(2, weight=0)
+
+        # Add functions frmae
+        self.functions_frame = FunctionsFrame(parent=self.frame_manager, controller=self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
+        self.functions_frame.grid(row=3, column=0, sticky='new')
+        self.frame_manager.grid_rowconfigure(3, weight=0)
+
+        self.text_frame = TextFrame(parent=self.frame_manager, controller = self, relief='groove', highlightbackground = 'lightgray', highlightthickness = '1')
+        self.text_frame.grid(row=4, column=0, sticky= 'nsew')
+        self.frame_manager.grid_rowconfigure(4, weight=1)
 
 
         
 
     def initialize_graphs(self) -> None:
-        self.ax1 = self.fig.add_subplot (self.gs[0, :])
-        self.ax2 = self.fig.add_subplot (self.gs[1, 0])
-        self.ax3 = self.fig.add_subplot (self.gs[1, 1])
+        self.ax1 = self.fig.add_subplot(self.gs[0, :])
+        self.ax2 = self.fig.add_subplot(self.gs[1, 0])
+        self.ax3 = self.fig.add_subplot(self.gs[1, 1])
 
         self.ax1.set_ylabel('Flux density (Jy)')
+        self.ax1.set_xlabel('Wavelength (μm)')
         self.ax1.set_xlim(xmin=app_globals.xp1, xmax=app_globals.xp2)
         self.data_line, = self.ax1.plot(app_globals.wave_data, app_globals.flux_data, color=self.foreground, linewidth=1)
         self.data_line.set_label('Data')
+        self.ax1.set_prop_cycle (color=['dodgerblue', 'darkorange', 'orangered', 'limegreen', 'mediumorchid', 'magenta',
+                               'hotpink', 'cyan', 'gold', 'turquoise', 'chocolate', 'royalblue', 'sienna', 'lime',
+                               'darkviolet', 'blue'])
         self.ax1.legend()
+        
+
 
         self.size_graph(self.ax1, app_globals.xp1, app_globals.xp2)
         
@@ -114,17 +130,18 @@ class GUI_Manager:
         self.ax2.set_xlabel('Wavelength (μm)')
         self.ax2.set_ylabel('Flux density (Jy)')
         self.ax2.set_frame_on(False)
-        # self.ax2.set_title('Line inspection plot', fontsize='medium')
-        self.data_line_select, = self.ax2.plot([], [], color=self.foreground, linewidth=1)
+
 
         # make empty lines for the second plot
-        self.ax2.set_title ('Line inspection plot', fontsize='medium')
         self.data_line_select, = self.ax2.plot([], [], color=self.foreground, linewidth=1)
+        self.ax2.set_ylim(0.00, 0.10)
 
         self.ax3.set_frame_on (False)
 
         # adjust the plots to make room for the widgets
-        self.fig.subplots_adjust(left=0.06, right=0.97, top=0.97, bottom=0.09)
+        self.fig.subplots_adjust(left=0.07, right=0.98, top=0.97, bottom=0.09)
+        self.canvas.draw()
+
 
 
     def size_graph(self, ax, xp1, xp2) -> None:
@@ -140,7 +157,7 @@ class GUI_Manager:
 
         self.tf_nextCol = 0
 
-        self.title_frame = tk.Frame(self.root, bg="lightgrey")
+        self.title_frame = tk.Frame(self.root)
         self.title_frame.grid(row=0, column=0, columnspan= 2, sticky='ew')
 
         # Create title frame buttons

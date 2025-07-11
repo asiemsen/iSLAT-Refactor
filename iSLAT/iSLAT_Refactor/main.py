@@ -490,7 +490,7 @@ moleculeManager.createLines(molecules_data, guiManager.ax1)
 
 # This must happen after createLines
 guiManager.molecules_frame.configureButton(moleculeManager.moleculeDictionary, guiManager.ax1, guiManager.canvas)
-guiManager.calcSum()
+moleculeManager.calcSum(guiManager.ax1, guiManager.canvas)
 
 
 

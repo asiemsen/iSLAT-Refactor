@@ -12,6 +12,8 @@ class MoleculeManager:
 
     def __init__(self, molecules_data) -> None:
 
+
+        self.fill = None
         self.propNum = 0
         self.moleculeDictionary = {}
 
@@ -121,11 +123,14 @@ class MoleculeManager:
             for molName in self.moleculeDictionary:
                 mol = self.moleculeDictionary[molName]
                 if mol["is_visible"]:
+                    print("adding ", molName)
                     fluxSum += mol["fluxes"][i]
         
             totalFluxes.append(fluxSum)
+        if self.fill is not None:
+            self.fill.remove()
 
-        ax1.fill_between(self.moleculeDictionary['h2o']['lambdas'], totalFluxes, color='gray', alpha=1)
+        self.fill = ax1.fill_between(self.moleculeDictionary['h2o']['lambdas'], totalFluxes, color='gray', alpha=1)
 
         canvas.draw()
                            

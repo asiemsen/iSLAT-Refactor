@@ -45,9 +45,12 @@ print('Loading molecule files: ...')
 
 molecules_data = read_from_user_csv()
 
+print(app_globals.file_name)
+
 moleculeManager = MoleculeManager(molecules_data)
 
 guiManager = GUI_Manager(window, moleculeManager)
+
 
 
 
@@ -484,7 +487,10 @@ plt.interactive(False)
 #         print('Line object or color attribute not found for:', mol_name)
 
 moleculeManager.createLines(molecules_data, guiManager.ax1)
-guiManager.molecules_frame.configureButton(moleculeManager.moleculeDictionary, guiManager.ax1)
+
+# This must happen after createLines
+guiManager.molecules_frame.configureButton(moleculeManager.moleculeDictionary, guiManager.ax1, guiManager.canvas)
+guiManager.calcSum()
 
 
 

@@ -1,6 +1,6 @@
 import tkinter as tk
 
-from iSLAT_Refactor.app_globals import file_name
+from iSLAT_Refactor import app_globals
 from ..tool_frame import ToolFrame
 
 class FilesFrame(ToolFrame):
@@ -22,7 +22,7 @@ class FilesFrame(ToolFrame):
         self.specfile_box = tk.Frame(self, relief='solid', borderwidth=1)
         self.specfile_box.grid(row=1, column=0, columnspan=2, sticky='nesw', padx=4)
 
-        self.spec_box_label = tk.Label(self.specfile_box, text=str(file_name), anchor='center', justify='center')
+        self.spec_box_label = tk.Label(self.specfile_box, text=str(app_globals.file_name), anchor='center', justify='center')
         self.spec_box_label.grid(row=0, column=0, sticky='nsew')
 
         self.specfile_box.grid_rowconfigure(0, weight=1)
@@ -32,7 +32,7 @@ class FilesFrame(ToolFrame):
         self.linefile_box = tk.Frame(self, relief='solid', borderwidth=1)
         self.linefile_box.grid(row=3, column=0, columnspan=2, sticky='nesw', padx=4)
 
-        self.lf_box_label = tk.Label(self.linefile_box, text="test2", anchor='center', justify='center')
+        self.lf_box_label = tk.Label(self.linefile_box, text="", anchor='center', justify='center')
         self.lf_box_label.grid(row=0, column=0, sticky='nsew')
 
         self.linefile_box.grid_rowconfigure(0, weight=1)
@@ -42,7 +42,7 @@ class FilesFrame(ToolFrame):
         self.output_box = tk.Frame(self, relief='solid', borderwidth=1)
         self.output_box.grid(row=5, column=0, columnspan=2, sticky='nesw', padx=4)
 
-        self.output_box_label = tk.Label(self.output_box, text="test3", anchor='center', justify='center')
+        self.output_box_label = tk.Label(self.output_box, text="", anchor='center', justify='center')
         self.output_box_label.grid(row=0, column=0, sticky='nesw')
 
         self.output_box.grid_rowconfigure(0, weight=1)

@@ -89,11 +89,7 @@ class MoleculeManager:
                 mol["line_plot"], = ax1.plot(mol["spectrum"].lamgrid, mol["fluxes"], alpha=0.0, linewidth=1.0, ls = '--')
             ax1.legend(loc='upper right')
 
-
-
-
-
-    def toggle_visible(self, molName, ax1):
+    def toggle_visible(self, molName, ax1, canvas):
 
         molName = molName.lower()
         mol = self.moleculeDictionary[molName]
@@ -111,8 +107,33 @@ class MoleculeManager:
             mol["line_plot"].set_label(None)
             # change alpha to 0.0
         ax1.legend(loc='upper right')
+
+        self.calcSum(ax1, canvas)
         
         plt.draw()
+    
+    def calcSum(self, ax1, canvas):
+        totalFluxes = []
+
+        for i in range(len(self.moleculeDictionary['h2o']['lambdas'])):
+            
+            fluxSum = 0
+            for molName in self.moleculeDictionary:
+                mol = self.moleculeDictionary[molName]
+                if mol["is_visible"]:
+                    fluxSum += mol["fluxes"][i]
+        
+            totalFluxes.append(fluxSum)
+
+        ax1.fill_between(self.moleculeDictionary['h2o']['lambdas'], totalFluxes, color='gray', alpha=1)
+
+        canvas.draw()
+                           
+        
+
+
+            
+
 
 
 # @dataclass

@@ -18,6 +18,7 @@ class GUI_Manager:
     def __init__(self, window, moleculeManager) -> None:
         self.molecules_frame = None
         self.ax1 = None
+        self.totalFluxes = []
         # for dark mode
         self.moleculeManager = moleculeManager
         self.root = window
@@ -38,13 +39,10 @@ class GUI_Manager:
         # Create a dictionary to store the visibility buttons
         self.vis_buttons_dict = {}
 
-        # self.root = tk.Tk()
-
-
-
         self.init_window()
         self.build_layout()
         self.initialize_graphs()
+        self.calcSum()
 
 
         self.ax1.legend(loc='upper right')
@@ -128,7 +126,6 @@ class GUI_Manager:
 
         self.ax1 = ax1
         
-        
         self.size_graph(self.ax1, app_globals.xp1, app_globals.xp2)
         
         self.ax2.set_xlabel('Wavelength (μm)')
@@ -192,10 +189,10 @@ class GUI_Manager:
         self.tf_nextCol += 1
 
 
+    def calcSum(self):
+        self.moleculeManager.calcSum(self.ax1, self.canvas)
 
-    def addButton(self, frame, **kwargs) -> tk.Button:
-        
-        button = tk.Button(frame, **kwargs)
+
 
 
         

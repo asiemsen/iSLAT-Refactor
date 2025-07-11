@@ -97,9 +97,11 @@ class MoleculeFrame(ToolFrame):
         for molName in moleculeDictionary:
             self.inputFields[molName]["color"].config(bg = moleculeDictionary[molName]["color"])
 
-    def configureButton(self, moleculeDictionary, plot1):
+    def configureButton(self, moleculeDictionary, plot1, canvas):
         for molName in moleculeDictionary:
-            self.inputFields[molName]["vis_button"].configure(command=lambda mn = molName, ax1 = plot1:self.controller.moleculeManager.toggle_visible(mn, ax1))
+            self.inputFields[molName]["vis_button"].configure(command=lambda mn = molName, ax1 = plot1, can = canvas:self.controller.moleculeManager.toggle_visible(mn, ax1, canvas))
+
+
 
 
 

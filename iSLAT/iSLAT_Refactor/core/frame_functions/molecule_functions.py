@@ -1,32 +1,51 @@
 
-def submitField(event, text):
-    # global text_box
-    # global text_box_data
+import numpy as np
+
+from iSLAT_Refactor import app_globals
+from ir_model.intensity import Intensity
+
+def submitField(field, event, text, appController):
+
+    molDict = appController.moleculeManager.moleculeDictionary
+    mol = molDict[text.lower()]
 
     data_field.delete ('1.0', "end")
     data_field.insert ('1.0', 'Submitting Radius...')
     plt.draw (), canvas.draw ()
     fig.canvas.flush_events ()
 
-    val = float (event)
-    exec (f"{text}_radius = {val}", globals ())
+    val = float(event)
+
+    if field == "temp":
+        mol["t_kin"] = val
+    elif field == "col":
+        mol["n_mol"] = val
+    elif field == "rad":
+        mol["rad"] = val
+    
+    mol["radius"] = val
 
     # Intensity calculation
-    exec (f"{text}_intensity.calc_intensity(t_{text}, n_mol_{text}, dv=intrinsic_line_width)", globals ())
+    if field != "rad":
+        mol["intensity"].intensity.calc_intensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
 
     # Spectrum creation
-    exec (
-        f"{text}_spectrum = Spectrum(lam_min=min_lamb, lam_max=max_lamb, dlambda=model_pixel_res, R=model_line_width, distance=dist)",
-        globals ())
+    mol["spectrum"] = Spectrum(lam_min=app_globals.min_lamb, 
+                                       lam_max=app_globals.max_lamb, 
+                                       dlambda=app_globals.model_pixel_res,
+                                       R=app_globals.model_line_width,
+                                       distance=app_globals.dist)
 
     # Adding intensity to the spectrum
-    exec (f"{text}_spectrum.add_intensity({text}_intensity, {text}_radius ** 2 * np.pi)", globals ())
+    mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
 
     # Fluxes and lambdas
-    exec (f"fluxes_{text} = {text}_spectrum.flux_jy; lambdas_{text} = {text}_spectrum.lamgrid", globals ())
+    mol["fluxes"] = mol["spectrum"].flux_jy
+    mol["lambdas"] = mol["spectrum"].lamgrid
 
     # Dynamically set the data for each molecule's line using exec and globals()
-    exec (f"{text}_line.set_data(lambdas_{text}, fluxes_{text})", globals ())
+    mol["line_plot"].set_data(mol["lambdas"], mol["fluxes"])
+
 
     # Clearing the text feed box.
     data_field.delete ('1.0', "end")
@@ -37,3 +56,5 @@ def submitField(event, text):
     # Clearing the text feed box.
     data_field.delete ('1.0', "end")
     plt.draw (), canvas.draw ()
+
+    

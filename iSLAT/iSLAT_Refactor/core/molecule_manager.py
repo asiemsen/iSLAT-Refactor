@@ -53,13 +53,7 @@ class MoleculeManager:
             mol["intensity"].calc_intensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
 
             # Spectrum creation/calc
-            mol["spectrum"] = Spectrum(lam_min=app_globals.min_lamb, 
-                                       lam_max=app_globals.max_lamb, 
-                                       dlambda=app_globals.model_pixel_res,
-                                       R=app_globals.model_line_width,
-                                       distance=app_globals.dist)
-            
-            mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
+            self.createSpectrum(molName)
             
             # Fluxes and Lambdas
             mol["fluxes"] = mol["spectrum"].flux_jy
@@ -132,6 +126,20 @@ class MoleculeManager:
         self.fill = ax1.fill_between(self.moleculeDictionary['h2o']['lambdas'], totalFluxes, color='gray', alpha=1)
 
         canvas.draw()
+
+    def createSpectrum(self, molName):
+        mol = self.moleculeDictionary[molName]
+
+        mol["spectrum"] = Spectrum(lam_min=app_globals.min_lamb, 
+                                       lam_max=app_globals.max_lamb, 
+                                       dlambda=app_globals.model_pixel_res,
+                                       R=app_globals.model_line_width,
+                                       distance=app_globals.dist)
+            
+        mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
+
+
+
                            
         
 

@@ -23,6 +23,7 @@ from iSLAT_Refactor import app_globals
 from iSLAT_Refactor.GUI.tooltip import ToolTip, CreateToolTip
 from iSLAT_Refactor.core.molecule_manager import MoleculeManager
 from iSLAT_Refactor.GUI.gui_manager import GUI_Manager
+from iSLAT_Refactor.core.app_controller import AppController
 
 print("LOADING REFACTORED iSLAT")
 
@@ -48,8 +49,9 @@ molecules_data = read_from_user_csv()
 print(app_globals.file_name)
 
 moleculeManager = MoleculeManager(molecules_data)
-
 guiManager = GUI_Manager(window, moleculeManager)
+
+appController = AppController(moleculeManager, guiManager)
 
 
 

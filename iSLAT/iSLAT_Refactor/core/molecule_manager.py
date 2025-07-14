@@ -123,7 +123,6 @@ class MoleculeManager:
             for molName in self.moleculeDictionary:
                 mol = self.moleculeDictionary[molName]
                 if mol["is_visible"]:
-                    print("adding ", molName)
                     fluxSum += mol["fluxes"][i]
         
             totalFluxes.append(fluxSum)

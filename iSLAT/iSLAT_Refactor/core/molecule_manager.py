@@ -39,7 +39,8 @@ class MoleculeManager:
 
             if molName == "h2o":
                 mol["is_visible"] = True
-
+                
+            print(f"MolData values: mol_name = {mol_name}, mol_filepath = {mol_filepath}")
             mol["data"] = MolData(mol_name, mol_filepath)
             mol["scale_exponent"] = scale_exponent
             mol["scale_number"] = scale_number
@@ -137,15 +138,6 @@ class MoleculeManager:
                                        distance=app_globals.dist)
             
         mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
-
-
-
-                           
-        
-
-
-            
-
 
 
 # @dataclass

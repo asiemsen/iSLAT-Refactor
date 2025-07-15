@@ -1,40 +1,45 @@
 
 import numpy as np
+import matplotlib.pyplot as plt
+
 
 from iSLAT_Refactor import app_globals
-from ir_model.intensity import Intensity
 
-def submitField(field, event, text, appController):
+
+def submitField(field, text, appController):
 
     molDict = appController.moleculeManager.moleculeDictionary
-    mol = molDict[text.lower()]
+    molName = text.lower()
+    mol = molDict[molName]
 
-    data_field.delete ('1.0', "end")
-    data_field.insert ('1.0', 'Submitting Radius...')
-    plt.draw (), canvas.draw ()
-    fig.canvas.flush_events ()
-
-    val = float(event)
+    # create method for this 
+    appController.guiManager.text_frame.data_field.delete('1.0', "end")
+    appController.guiManager.text_frame.data_field.insert('1.0', 'Submitting Radius...')
+    plt.draw ()
+    appController.guiManager.canvas.draw()
+    appController.guiManager.fig.canvas.flush_events()
 
     if field == "temp":
-        mol["t_kin"] = val
+        val = appController.guiManager.molecules_frame.inputFields[molName]["temp"].get()
+        floatConvert(val, appController)
+        mol["t_kin"] = float(val)
     elif field == "col":
-        mol["n_mol"] = val
+        val = appController.guiManager.molecules_frame.inputFields[molName]["n_mol"].get()
+        floatConvert(val, appController)
+        mol["n_mol"] = float(val)
     elif field == "rad":
-        mol["rad"] = val
-    
-    mol["radius"] = val
+        val = appController.guiManager.molecules_frame.inputFields[molName]["radius"].get()
+        floatConvert(val, appController)
+        mol["radius"] = float(val)
 
     # Intensity calculation
-    if field != "rad":
-        mol["intensity"].intensity.calc_intensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
+    # if field != "rad":
+    print("DEBUG: t_kin =", mol["t_kin"], type(mol["t_kin"]))
+
+    mol["intensity"].calc_intensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
 
     # Spectrum creation
-    mol["spectrum"] = Spectrum(lam_min=app_globals.min_lamb, 
-                                       lam_max=app_globals.max_lamb, 
-                                       dlambda=app_globals.model_pixel_res,
-                                       R=app_globals.model_line_width,
-                                       distance=app_globals.dist)
+    appController.moleculeManager.createSpectrum(molName)
 
     # Adding intensity to the spectrum
     mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
@@ -48,13 +53,27 @@ def submitField(field, event, text, appController):
 
 
     # Clearing the text feed box.
-    data_field.delete ('1.0', "end")
-    data_field.insert ('1.0', 'Radius updated!')
-    plt.draw (), canvas.draw ()
-    fig.canvas.flush_events ()
+    appController.guiManager.text_frame.data_field.delete ('1.0', "end")
+    appController.guiManager.text_frame.data_field.insert ('1.0', 'Radius updated!')
+    # plt.draw (), canvas.draw ()
+    appController.guiManager.fig.canvas.flush_events()
 
     # Clearing the text feed box.
-    data_field.delete ('1.0', "end")
-    plt.draw (), canvas.draw ()
+    appController.guiManager.text_frame.data_field.delete ('1.0', "end")
+    plt.draw ()
+    appController.guiManager.canvas.draw()
 
     
+
+def floatConvert(val, appController):
+    try:
+        floatVal = float(val)
+        print("value correctly converted: ", floatVal)
+    except ValueError:
+        print("value not correctly converted: ", floatVal)
+        appController.guiManager.text_frame.data_field.delete('1.0', "end")
+        appController.guiManager.text_frame.data_field.insert('1.0', "Invalid input: must be a number.")
+        return
+
+
+

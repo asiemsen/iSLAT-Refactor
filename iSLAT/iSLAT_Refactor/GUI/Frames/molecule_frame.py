@@ -1,6 +1,7 @@
 import tkinter as tk
 
 from ..tool_frame import ToolFrame
+from iSLAT_Refactor.core.frame_functions import molecule_functions
 
 class MoleculeFrame(ToolFrame):
 
@@ -49,7 +50,7 @@ class MoleculeFrame(ToolFrame):
             radius_init = params["radius"]
             n_mol_init = params["n_mol"]
 
-            self.inputFields[mol_name] = {}
+            self.inputFields[mol_name] = {} 
             inFields = self.inputFields[mol_name]
 
             # row label 
@@ -97,9 +98,41 @@ class MoleculeFrame(ToolFrame):
         for molName in moleculeDictionary:
             self.inputFields[molName]["color"].config(bg = moleculeDictionary[molName]["color"])
 
-    def configureButton(self, moleculeDictionary, plot1, canvas):
-        for molName in moleculeDictionary:
-            self.inputFields[molName]["vis_button"].configure(command=lambda mn = molName, ax1 = plot1, can = canvas:self.controller.moleculeManager.toggle_visible(mn, ax1, canvas))
+    def configureButton(self, appController):
+        moleculeManager = appController.moleculeManager
+        guiManager = appController.guiManager
+
+        for molName in moleculeManager.moleculeDictionary:
+            print(f"configuring {molName}")
+            inFields = self.inputFields[molName]
+            self.inputFields[molName]["vis_button"].configure(command=lambda 
+                                                              mn = molName, 
+                                                              ax1 = guiManager.ax1, 
+                                                              can = guiManager.canvas:
+                                                              self.controller.moleculeManager.toggle_visible(mn, ax1, can))
+            
+            self.inputFields[molName]["temp"].bind("<Return>", lambda event, mn = molName: 
+                                                   molecule_functions.submitField(
+                                                        "temp",
+                                                        mn,
+                                                        appController=appController)
+            )
+                                                   
+            
+            self.inputFields[molName]["radius"].bind("<Return>", lambda event, mn = molName: 
+                                                   molecule_functions.submitField(
+                                                        "temp",
+                                                        mn,
+                                                        appController=appController)
+            )
+            
+            self.inputFields[molName]["density"].bind("<Return>", lambda event, mn = molName: 
+                                                   molecule_functions.submitField(
+                                                        "col",
+                                                        mn,
+                                                        appController=appController)
+            )
+
 
 
 

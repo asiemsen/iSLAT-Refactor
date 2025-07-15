@@ -34,7 +34,7 @@ def submitField(field, text, appController):
 
     # Intensity calculation
     # if field != "rad":
-    print("DEBUG: t_kin =", mol["t_kin"], type(mol["t_kin"]))
+    print(f"temp = {mol["t_kin"]}, column = {mol["n_mol"]}, rad = {mol["radius"]}")
 
     mol["intensity"].calc_intensity(mol["t_kin"], mol["n_mol"], dv = app_globals.intrinsic_line_width)
 
@@ -61,9 +61,9 @@ def submitField(field, text, appController):
     # Clearing the text feed box.
     appController.guiManager.text_frame.data_field.delete ('1.0', "end")
     plt.draw ()
-    appController.guiManager.canvas.draw()
+    appController.moleculeManager.calcSum(appController.guiManager.ax1, appController.guiManager.canvas)
 
-    
+
 
 def floatConvert(val, appController):
     try:

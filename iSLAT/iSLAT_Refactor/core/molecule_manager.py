@@ -39,7 +39,7 @@ class MoleculeManager:
 
             if molName == "h2o":
                 mol["is_visible"] = True
-                
+
             print(f"MolData values: mol_name = {mol_name}, mol_filepath = {mol_filepath}")
             mol["data"] = MolData(mol_name, mol_filepath)
             mol["scale_exponent"] = scale_exponent
@@ -48,6 +48,10 @@ class MoleculeManager:
             mol["radius"] = radius_init
             mol["n_mol"] = n_mol_init # what is n_mol (column density?)
             mol["label"] = mol_label
+
+            if molName == 'h2o':
+                print(f"temp = {mol["t_kin"]}, column = {mol["n_mol"]}, rad = {mol["radius"]}")
+
 
             # Intensity create/calc
             mol["intensity"] = Intensity(mol["data"])

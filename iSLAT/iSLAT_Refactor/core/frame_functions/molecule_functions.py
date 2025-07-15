@@ -23,11 +23,11 @@ def submitField(field, text, appController):
         val = appController.guiManager.molecules_frame.inputFields[molName]["temp"].get()
         floatConvert(val, appController)
         mol["t_kin"] = float(val)
-    elif field == "col":
-        val = appController.guiManager.molecules_frame.inputFields[molName]["n_mol"].get()
+    elif field == "density":
+        val = appController.guiManager.molecules_frame.inputFields[molName]["density"].get()
         floatConvert(val, appController)
         mol["n_mol"] = float(val)
-    elif field == "rad":
+    elif field == "radius":
         val = appController.guiManager.molecules_frame.inputFields[molName]["radius"].get()
         floatConvert(val, appController)
         mol["radius"] = float(val)
@@ -42,7 +42,7 @@ def submitField(field, text, appController):
     appController.moleculeManager.createSpectrum(molName)
 
     # Adding intensity to the spectrum
-    mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
+    # mol["spectrum"].add_intensity(mol["intensity"], mol["radius"] ** 2 * np.pi)
 
     # Fluxes and lambdas
     mol["fluxes"] = mol["spectrum"].flux_jy

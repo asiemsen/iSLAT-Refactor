@@ -121,14 +121,14 @@ class MoleculeFrame(ToolFrame):
             
             self.inputFields[molName]["radius"].bind("<Return>", lambda event, mn = molName: 
                                                    molecule_functions.submitField(
-                                                        "temp",
+                                                        "radius",
                                                         mn,
                                                         appController=appController)
             )
             
             self.inputFields[molName]["density"].bind("<Return>", lambda event, mn = molName: 
                                                    molecule_functions.submitField(
-                                                        "col",
+                                                        "density",
                                                         mn,
                                                         appController=appController)
             )

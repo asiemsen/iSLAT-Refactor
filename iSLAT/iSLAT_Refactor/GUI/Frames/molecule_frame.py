@@ -104,7 +104,6 @@ class MoleculeFrame(ToolFrame):
 
         for molName in moleculeManager.moleculeDictionary:
             print(f"configuring {molName}")
-            inFields = self.inputFields[molName]
             self.inputFields[molName]["vis_button"].configure(command=lambda 
                                                               mn = molName, 
                                                               ax1 = guiManager.ax1, 
@@ -132,9 +131,10 @@ class MoleculeFrame(ToolFrame):
                                                         mn,
                                                         appController=appController)
             )
-
-
-
+            self.inputFields[molName]["delete"].configure(command = lambda
+                                                          w = self.inputFields[molName]["delete"],
+                                                          mn = molName:
+                                                          molecule_functions.delete_row(appController, w, self.data_frame, mn))
 
 
 

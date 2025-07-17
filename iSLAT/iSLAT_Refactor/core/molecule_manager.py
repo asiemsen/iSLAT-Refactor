@@ -12,7 +12,7 @@ class MoleculeManager:
 
     def __init__(self, molecules_data) -> None:
 
-
+        self.molecules_data = molecules_data
         self.fill = None
         self.propNum = 0
         self.moleculeDictionary = {}

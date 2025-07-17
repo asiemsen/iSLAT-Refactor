@@ -86,3 +86,8 @@ class PlotParamsFrame(ToolFrame):
         #spandropd.grid(row=4, column=1, pady=(0, 45))
         self.spandropd.grid(row=4, column=1)
 
+    def configureButtons(self):
+        self.xp1_entry.bind("<Return>", )
+        
+
+

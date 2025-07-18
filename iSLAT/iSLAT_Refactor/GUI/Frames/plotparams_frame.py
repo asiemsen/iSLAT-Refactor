@@ -101,10 +101,10 @@ class PlotParamsFrame(ToolFrame):
                             plotparam_functions.updateSpectrum(self, attr, appController))
         
         self.dist_entry.bind("<Return>", lambda event, attr = "dist": 
-                            plotparam_functions.generic_submit(self, appController))
+                            plotparam_functions.dist_submit(self, appController))
         
         self.star_rv_entry.bind("<Return>", lambda event, attr = "star_rv": 
-                            plotparam_functions.generic_submit(self, appController))
+                            plotparam_functions.stellar_submit(self, appController))
         
         self.fwhm_entry.bind("<Return>", lambda event, attr = "fwhm": 
                             plotparam_functions.generic_submit(self, appController))

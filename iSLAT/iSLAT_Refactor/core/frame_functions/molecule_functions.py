@@ -58,7 +58,7 @@ def submitField(field, text, appController):
     # Clearing the text feed box.
     appController.guiManager.text_frame.data_field.delete ('1.0', "end")
     plt.draw ()
-    appController.moleculeManager.calcSum(appController.guiManager.ax1, appController.guiManager.canvas)
+    appController.calculateSum()
 
 
 def delete_row(appController, widget, data_frame, molName):

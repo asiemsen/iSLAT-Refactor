@@ -98,7 +98,7 @@ class MoleculeFrame(ToolFrame):
         for molName in moleculeDictionary:
             self.inputFields[molName]["color"].config(bg = moleculeDictionary[molName]["color"])
 
-    def configureButton(self, appController):
+    def configureButtons(self, appController):
         moleculeManager = appController.moleculeManager
         guiManager = appController.guiManager
 

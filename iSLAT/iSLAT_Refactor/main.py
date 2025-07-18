@@ -80,15 +80,10 @@ plt.interactive(False)
 moleculeManager.createLines(molecules_data, guiManager.ax1)
 
 # This must happen after createLines
-guiManager.molecules_frame.configureButton(appController)
+guiManager.molecules_frame.configureButtons(appController)
+guiManager.plotparams_frame.configureButtons(appController)
+
 moleculeManager.calcSum(guiManager.ax1, guiManager.canvas)
-
-
-
-# window.attributes('-fullscreen', True)   # full monitor
-# window.state('zoomed') 
-# window.update()
-# window.deiconify()
 
 window.mainloop()
 

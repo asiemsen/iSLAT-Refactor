@@ -116,3 +116,5 @@ mode = False
 xp1 = 0
 rng = 0
 xp2 = 10
+
+mask = None

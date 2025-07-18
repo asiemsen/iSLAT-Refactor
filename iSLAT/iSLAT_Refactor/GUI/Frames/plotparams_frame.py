@@ -3,6 +3,7 @@ from tkinter import ttk
 
 from iSLAT_Refactor import app_globals
 from ..tool_frame import ToolFrame
+from iSLAT_Refactor.core.frame_functions import plotparam_functions
 
 
 class PlotParamsFrame(ToolFrame): 
@@ -85,9 +86,33 @@ class PlotParamsFrame(ToolFrame):
         self.spandropd.set(self.spanoptionsvar[0])
         #spandropd.grid(row=4, column=1, pady=(0, 45))
         self.spandropd.grid(row=4, column=1)
+ 
+    def configureButtons(self, appController):
+        self.xp1_entry.bind("<Return>", lambda event, attr = "xp1": 
+                            plotparam_functions.update_xp1_rng(self, attr, appController))
+        
+        self.rng_entry.bind("<Return>", lambda event, attr = "rng": 
+                            plotparam_functions.update_xp1_rng(self, attr, appController))
+        
+        self.min_lamb_entry.bind("<Return>", lambda event, attr = "min_lamb": 
+                            plotparam_functions.updateSpectrum(self, attr, appController))
+        
+        self.max_lamb_entry.bind("<Return>", lambda event, attr = "max_lamb": 
+                            plotparam_functions.updateSpectrum(self, attr, appController))
+        
+        self.dist_entry.bind("<Return>", lambda event, attr = "dist": 
+                            plotparam_functions.generic_submit(self, appController))
+        
+        self.star_rv_entry.bind("<Return>", lambda event, attr = "star_rv": 
+                            plotparam_functions.generic_submit(self, appController))
+        
+        self.fwhm_entry.bind("<Return>", lambda event, attr = "fwhm": 
+                            plotparam_functions.generic_submit(self, appController))
+        
+        self.intrinsic_line_width_entry.bind("<Return>", lambda event, attr = "broadening": 
+                            plotparam_functions.generic_submit(self, appController))
 
-    def configureButtons(self):
-        self.xp1_entry.bind("<Return>", )
+        
         
 
 

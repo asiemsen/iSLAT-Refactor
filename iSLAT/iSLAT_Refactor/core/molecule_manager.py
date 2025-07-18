@@ -115,20 +115,22 @@ class MoleculeManager:
     
     def calcSum(self, ax1, canvas):
         totalFluxes = []
+        refLambdas = self.moleculeDictionary["h2o"]["lambdas"]
+        mask = (refLambdas >= app_globals.min_lamb) & (refLambdas <= app_globals.max_lamb)
 
-        for i in range(len(self.moleculeDictionary['h2o']['lambdas'])):
+        for i in range(len(refLambdas[mask])):
             
             fluxSum = 0
             for molName in self.moleculeDictionary:
                 mol = self.moleculeDictionary[molName]
                 if mol["is_visible"]:
-                    fluxSum += mol["fluxes"][i]
+                    fluxSum += mol["fluxes"][mask][i]
         
             totalFluxes.append(fluxSum)
         if self.fill is not None:
             self.fill.remove()
 
-        self.fill = ax1.fill_between(self.moleculeDictionary['h2o']['lambdas'], totalFluxes, color='gray', alpha=1)
+        self.fill = ax1.fill_between(refLambdas[mask], totalFluxes, color='gray', alpha=1)
 
         canvas.draw()
 
